@@ -70,13 +70,13 @@ export function Footer() {
               <li className="flex items-center space-x-2">
                 <Phone className="h-4 w-4" style={{ color: 'var(--primary)' }} />
                 <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  (555) 123-4567
+                  +91 9876543210
                 </span>
               </li>
               <li className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4" style={{ color: 'var(--primary)' }} />
                 <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  New York, NY
+                  Goa, India
                 </span>
               </li>
             </ul>
@@ -86,7 +86,7 @@ export function Footer() {
         <div className="border-t pt-8 mt-8 text-center"
              style={{ borderColor: 'var(--border-color)' }}>
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            © 2024 EmpowHer. All rights reserved. Built with ❤️ for women everywhere.
+            © 2025 EmpowHer. All rights reserved. Built with ❤️ for women everywhere.
           </p>
         </div>
       </div>
