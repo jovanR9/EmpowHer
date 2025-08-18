@@ -1,16 +1,25 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Calendar, User, Tag } from 'lucide-react';
-import { Story } from '../../data/mockData';
+
+interface Story {
+  id: string;
+  created_at: string;
+  title: string;
+  excerpt: string;
+  body: string;
+  author: string;
+  image?: string;
+  tags: string[];
+  likes: number;
+  published: boolean;
+}
 
 interface StoryCardProps {
   story: Story;
-  showActions?: boolean;
-  onEdit?: (story: Story) => void;
-  onDelete?: (id: string) => void;
 }
 
-export function StoryCard({ story, showActions = false, onEdit, onDelete }: StoryCardProps) {
+export function StoryCard({ story }: StoryCardProps) {
   return (
     <article className="card p-0 overflow-hidden">
       <div className="aspect-w-16 aspect-h-9">
@@ -31,7 +40,7 @@ export function StoryCard({ story, showActions = false, onEdit, onDelete }: Stor
           </div>
           <div className="flex items-center space-x-1">
             <Calendar className="h-4 w-4" />
-            <span>{new Date(story.createdAt).toLocaleDateString()}</span>
+            <span>{new Date(story.created_at).toLocaleDateString()}</span>
           </div>
           <div className="flex items-center space-x-1">
             <Heart className="h-4 w-4" />
@@ -55,7 +64,7 @@ export function StoryCard({ story, showActions = false, onEdit, onDelete }: Stor
           {story.excerpt}
         </p>
         
-        {story.tags.length > 0 && (
+        {story.tags && story.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {story.tags.map((tag) => (
               <span
@@ -81,27 +90,6 @@ export function StoryCard({ story, showActions = false, onEdit, onDelete }: Stor
           >
             Read More
           </Link>
-          
-          {showActions && (
-            <div className="flex space-x-2">
-              <button
-                onClick={() => onEdit?.(story)}
-                className="px-3 py-1 text-sm rounded-lg transition-colors"
-                style={{ 
-                  backgroundColor: 'var(--secondary)',
-                  color: 'var(--text-primary)'
-                }}
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => onDelete?.(story.id)}
-                className="px-3 py-1 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Delete
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </article>

@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { X, Upload, Tag } from 'lucide-react';
+import { supabase } from '../../lib/supabaseClient';
 import { Story } from '../../data/mockData';
+import { Toast } from '../Common/Toast';
 
 interface StoryFormProps {
   story?: Story;
-  onSubmit: (story: Omit<Story, 'id' | 'createdAt' | 'likes'>) => void;
   onCancel: () => void;
+  onSuccess: () => void;
 }
 
-export function StoryForm({ story, onSubmit, onCancel }: StoryFormProps) {
+export function StoryForm({ story, onCancel, onSuccess }: StoryFormProps) {
   const [formData, setFormData] = useState({
     title: story?.title || '',
     excerpt: story?.excerpt || '',
@@ -20,6 +22,7 @@ export function StoryForm({ story, onSubmit, onCancel }: StoryFormProps) {
   
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -69,11 +72,9 @@ export function StoryForm({ story, onSubmit, onCancel }: StoryFormProps) {
     if (!validateForm()) return;
     
     setIsSubmitting(true);
+    setToast(null); // Clear previous toasts
     
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const storyData = {
+    const commonStoryData = {
       title: formData.title.trim(),
       excerpt: formData.excerpt.trim(),
       body: formData.body.trim(),
@@ -82,11 +83,37 @@ export function StoryForm({ story, onSubmit, onCancel }: StoryFormProps) {
       tags: formData.tags
         .split(',')
         .map(tag => tag.trim())
-        .filter(tag => tag.length > 0)
+        .filter(tag => tag.length > 0),
     };
-    
-    onSubmit(storyData);
-    setIsSubmitting(false);
+
+    try {
+      let response;
+      if (story) {
+        // Update existing story
+        response = await supabase
+          .from('stories')
+          .update(commonStoryData)
+          .eq('id', story.id);
+      } else {
+        // Insert new story
+        response = await supabase
+          .from('stories')
+          .insert([{ ...commonStoryData, published: true }]); // Set published to true for new stories
+      }
+      
+      if (response.error) {
+        console.error('Error saving story:', response.error);
+        setToast({ message: `Error saving story: ${response.error.message}`, type: 'error' });
+      } else {
+        setToast({ message: 'Story saved successfully!', type: 'success' });
+        onSuccess();
+      }
+    } catch (err) {
+      console.error('Unexpected error during story save:', err);
+      setToast({ message: 'An unexpected error occurred.', type: 'error' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -99,6 +126,14 @@ export function StoryForm({ story, onSubmit, onCancel }: StoryFormProps) {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          isVisible={true}
+          onClose={() => setToast(null)}
+        />
+      )}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
           {story ? 'Edit Your Story' : 'Share Your Story'}

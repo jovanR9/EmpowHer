@@ -1,12 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Users, BookOpen, Briefcase, TrendingUp } from 'lucide-react';
 import { Hero } from '../components/Common/Hero';
 import { StoryCard } from '../components/Stories/StoryCard';
-import { mockStories, mockGuides, mockBusinesses } from '../data/mockData';
+import { mockGuides, mockBusinesses, Story } from '../data/mockData';
+import { supabase } from '../lib/supabaseClient';
 
 export function Home() {
-  const featuredStories = mockStories.slice(0, 3);
+  const [featuredStories, setFeaturedStories] = useState<Story[]>([]);
+
+  useEffect(() => {
+    const fetchFeaturedStories = async () => {
+      const { data, error } = await supabase
+        .from('stories')
+        .select('*')
+        .eq('published', true)
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (error) {
+        console.error('Error fetching featured stories:', error);
+      } else {
+        setFeaturedStories(data as Story[]);
+      }
+    };
+
+    fetchFeaturedStories();
+  }, []);
+
   const featuredGuides = mockGuides.slice(0, 3);
   const featuredBusinesses = mockBusinesses.slice(0, 3);
 

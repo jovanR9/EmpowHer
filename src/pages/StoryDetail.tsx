@@ -1,18 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Calendar, User, Tag, Edit, Trash2, Share2 } from 'lucide-react';
-import { mockStories } from '../data/mockData';
 import { useStorage } from '../contexts/StorageContext';
 import { Toast } from '../components/Common/Toast';
+import { supabase } from '../lib/supabaseClient';
+
+interface Story {
+  id: string;
+  created_at: string;
+  title: string;
+  excerpt: string;
+  body: string;
+  author: string;
+  image?: string;
+  tags: string[];
+  likes: number;
+  published: boolean;
+}
 
 export function StoryDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { userStories, deleteUserStory, isUserStory } = useStorage();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [story, setStory] = useState<Story | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  // Find story in both user stories and mock stories
-  const story = userStories.find(s => s.id === id) || mockStories.find(s => s.id === id);
+  useEffect(() => {
+    const fetchStory = async () => {
+      setLoading(true);
+      let foundStory = null;
+
+      // Check if it's a user-created story (from local storage)
+      if (id && id.startsWith('user-')) {
+        foundStory = userStories.find(s => s.id === id);
+      } else if (id) {
+        // Otherwise, try fetching from Supabase
+        const { data, error } = await supabase
+          .from('stories')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching story from Supabase:', error);
+        } else {
+          foundStory = data as Story;
+        }
+      }
+      setStory(foundStory);
+      setLoading(false);
+    };
+
+    fetchStory();
+  }, [id, userStories]); // Re-fetch if ID or userStories change
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p style={{ color: 'var(--text-secondary)' }}>Loading story...</p>
+      </div>
+    );
+  }
 
   if (!story) {
     return (
@@ -38,11 +87,27 @@ export function StoryDetail() {
 
   const canEdit = isUserStory(story.id);
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this story? This action cannot be undone.')) {
-      deleteUserStory(story.id);
-      setToast({ message: 'Story deleted successfully', type: 'success' });
-      setTimeout(() => navigate('/stories'), 1500);
+      if (isUserStory(story.id)) {
+        deleteUserStory(story.id);
+        setToast({ message: 'Story deleted successfully from local storage', type: 'success' });
+        setTimeout(() => navigate('/stories'), 1500);
+      } else {
+        // Attempt to delete from Supabase
+        const { error } = await supabase
+          .from('stories')
+          .delete()
+          .eq('id', story.id);
+
+        if (error) {
+          console.error('Error deleting story from Supabase:', error);
+          setToast({ message: 'Failed to delete story from Supabase', type: 'error' });
+        } else {
+          setToast({ message: 'Story deleted successfully from Supabase', type: 'success' });
+          setTimeout(() => navigate('/stories'), 1500);
+        }
+      }
     }
   };
 
@@ -69,9 +134,10 @@ export function StoryDetail() {
   };
 
   // Get related stories (same tags, excluding current)
-  const allStories = [...userStories, ...mockStories];
+  // This will now consider both mock stories and potentially other Supabase stories if fetched
+  const allStories = [...userStories]; // Only user stories for now, Supabase stories are fetched individually
   const relatedStories = allStories
-    .filter(s => s.id !== story.id && s.tags.some(tag => story.tags.includes(tag)))
+    .filter(s => s.id !== story.id && s.tags && story.tags && s.tags.some(tag => story.tags.includes(tag)))
     .slice(0, 3);
 
   return (
@@ -123,7 +189,7 @@ export function StoryDetail() {
             </div>
             <div className="flex items-center space-x-2">
               <Calendar className="h-5 w-5" />
-              <span>{new Date(story.createdAt).toLocaleDateString('en-US', {
+              <span>{new Date(story.created_at).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
@@ -136,7 +202,7 @@ export function StoryDetail() {
           </div>
 
           {/* Tags */}
-          {story.tags.length > 0 && (
+          {story.tags && story.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-6">
               {story.tags.map((tag) => (
                 <span

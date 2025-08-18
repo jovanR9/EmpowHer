@@ -1,28 +1,142 @@
-import React, { useState, useMemo } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Plus, Filter, SortAsc } from 'lucide-react';
 import { Hero } from '../components/Common/Hero';
 import { SearchBar } from '../components/Common/SearchBar';
 import { StoryCard } from '../components/Stories/StoryCard';
-import { mockStories } from '../data/mockData';
+import { supabase } from '../lib/supabaseClient';
 import { useStorage } from '../contexts/StorageContext';
+
+interface Story {
+  id: string;
+  created_at: string;
+  title: string;
+  excerpt: string;
+  body: string;
+  author: string;
+  image?: string;
+  tags: string[];
+  likes: number;
+  published: boolean;
+}
+
+// Helper function to validate story data
+const isValidStory = (story: any): boolean => {
+  const dateField = story.created_at || story.createdAt;
+  return (
+    story &&
+    typeof story === 'object' &&
+    story.id &&
+    story.title &&
+    story.excerpt &&
+    story.body &&
+    story.author &&
+    dateField &&
+    !isNaN(new Date(dateField).getTime())
+  );
+};
+
+// Helper function to normalize story data
+const normalizeStory = (story: any): Story => {
+  return {
+    id: story.id,
+    created_at: story.created_at || story.createdAt,
+    title: story.title || '',
+    excerpt: story.excerpt || '',
+    body: story.body || '',
+    author: story.author || '',
+    image: story.image,
+    tags: Array.isArray(story.tags) ? story.tags : [],
+    likes: typeof story.likes === 'number' ? story.likes : 0,
+    published: story.published !== false // Default to true if not specified
+  };
+};
 
 export function Stories() {
   const { userStories } = useStorage();
+  const [stories, setStories] = useState<Story[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'popular' | 'oldest'>('newest');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Combine mock stories with user stories
+  useEffect(() => {
+    const fetchStories = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const { data, error } = await supabase
+          .from('stories')
+          .select('*')
+          .eq('published', true);
+
+        if (error) {
+          console.error('Error fetching stories:', error);
+          setError('Failed to load stories from database');
+          setStories([]);
+        } else {
+          // Filter out any invalid stories from database
+          const validStories = (data || []).filter(isValidStory);
+          setStories(validStories);
+          
+          // Log if any stories were filtered out
+          if (data && data.length !== validStories.length) {
+            console.warn(`Filtered out ${data.length - validStories.length} invalid stories from database`);
+          }
+        }
+      } catch (err) {
+        console.error('Unexpected error fetching stories:', err);
+        setError('An unexpected error occurred');
+        setStories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStories();
+  }, []);
+
+  // Combine user stories with fetched stories, filtering out invalid ones
   const allStories = useMemo(() => {
-    return [...userStories, ...mockStories];
-  }, [userStories]);
+    // Filter user stories - only include complete stories
+    const validUserStories = (userStories || [])
+      .filter(story => {
+        const isValid = isValidStory(story);
+        // Only log if it's a partial story (has some fields but not all)
+        if (!isValid && story && story.id && Object.keys(story).length > 3) {
+          console.warn('Incomplete user story filtered out (missing required fields):', story);
+        }
+        return isValid;
+      })
+      .map(normalizeStory);
+
+    // Normalize fetched stories (they should already be valid)
+    const normalizedFetchedStories = stories.map(normalizeStory);
+
+    // Combine all valid stories
+    const combined = [...validUserStories, ...normalizedFetchedStories];
+    
+    // Remove duplicates based on ID
+    const uniqueStories = combined.filter((story, index, self) => 
+      index === self.findIndex(s => s.id === story.id)
+    );
+
+    return uniqueStories;
+  }, [userStories, stories]);
 
   // Get all unique tags
   const allTags = useMemo(() => {
     const tagSet = new Set<string>();
     allStories.forEach(story => {
-      story.tags.forEach(tag => tagSet.add(tag));
+      if (story.tags && Array.isArray(story.tags)) {
+        story.tags.forEach(tag => {
+          if (tag && typeof tag === 'string') {
+            tagSet.add(tag.trim());
+          }
+        });
+      }
     });
     return Array.from(tagSet).sort();
   }, [allStories]);
@@ -30,10 +144,17 @@ export function Stories() {
   // Filter and sort stories
   const filteredStories = useMemo(() => {
     let filtered = allStories.filter(story => {
+      // Ensure all required fields exist before filtering
+      if (!story || !story.title || !story.excerpt || !story.author) {
+        return false;
+      }
+
       const matchesSearch = story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           story.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           story.author.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesTag = !selectedTag || story.tags.includes(selectedTag);
+      
+      const matchesTag = !selectedTag || (story.tags && story.tags.includes(selectedTag));
+      
       return matchesSearch && matchesTag;
     });
 
@@ -41,11 +162,11 @@ export function Stories() {
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'newest':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         case 'oldest':
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         case 'popular':
-          return b.likes - a.likes;
+          return (b.likes || 0) - (a.likes || 0);
         default:
           return 0;
       }
@@ -53,6 +174,36 @@ export function Stories() {
 
     return filtered;
   }, [allStories, searchTerm, selectedTag, sortBy]);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div>
+        <Hero
+          title="Empowering Stories"
+          subtitle="Discover inspiring journeys of women who've overcome challenges and achieved their dreams."
+        >
+          <Link
+            to="/stories/submit"
+            className="btn-primary inline-flex items-center space-x-2 px-6 py-3 font-semibold rounded-lg"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Share Your Story</span>
+          </Link>
+        </Hero>
+
+        <section className="py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center py-12">
+              <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
+                Loading stories...
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -71,6 +222,18 @@ export function Stories() {
 
       <section className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 rounded-lg" 
+                 style={{ 
+                   backgroundColor: 'var(--error-bg, #fee2e2)', 
+                   color: 'var(--error-text, #dc2626)',
+                   border: '1px solid var(--error-border, #fecaca)'
+                 }}>
+              {error}
+            </div>
+          )}
+
           {/* Search and Filters */}
           <div className="mb-8 space-y-4">
             <div className="flex flex-col lg:flex-row gap-4">
@@ -139,6 +302,7 @@ export function Stories() {
                     <button 
                       onClick={() => setSearchTerm('')}
                       className="ml-2 hover:opacity-70"
+                      aria-label="Clear search"
                     >
                       ×
                     </button>
@@ -154,6 +318,7 @@ export function Stories() {
                     <button 
                       onClick={() => setSelectedTag('')}
                       className="ml-2 hover:opacity-70"
+                      aria-label="Clear tag filter"
                     >
                       ×
                     </button>
