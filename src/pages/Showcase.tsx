@@ -3,6 +3,7 @@ import { Briefcase, ShoppingBag, Plus, Search, Filter, Eye, ExternalLink, Mail }
 import { Hero } from '../components/Common/Hero';
 import { SearchBar } from '../components/Common/SearchBar';
 import { Modal } from '../components/Common/Modal';
+import { BusinessForm } from '../components/Showcase/businessForm';
 import { supabase } from '../lib/supabaseClient'; // Import supabase
 import { mockProducts, Business, Product } from '../data/mockData'; // Keep mockProducts for now
 
@@ -12,6 +13,7 @@ export function Showcase() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
+  const [showBusinessForm, setShowBusinessForm] = useState(false);
 
   // State for fetched businesses
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -19,49 +21,54 @@ export function Showcase() {
   const [error, setError] = useState<string | null>(null);
 
   // Fetch businesses from Supabase
-  useEffect(() => {
-    const fetchBusinesses = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const fetchBusinesses = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const { data, error } = await supabase
-          .from('businesses')
-          .select('*');
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('*')
+        .order('name'); // Order by name for consistent display
 
-        if (error) {
-          console.error('Error fetching businesses:', error);
-          setError('Failed to load businesses from database');
-          setBusinesses([]);
-        } else {
-          // Basic validation and normalization for fetched data
-          const validBusinesses: Business[] = (data || []).map(b => ({
-            id: b.id,
-            name: b.name || 'Untitled Business',
-            owner: b.owner || 'Unknown',
-            description: b.description || '',
-            category: b.category || 'General',
-            logo: b.logo || 'https://via.placeholder.com/150/CCCCCC/000000?text=No+Logo',
-            contact: b.contact || '',
-          }));
-          setBusinesses(validBusinesses);
-        }
-      } catch (err) {
-        console.error('Unexpected error fetching businesses:', err);
-        setError('An unexpected error occurred');
+      if (error) {
+        console.error('Error fetching businesses:', error);
+        setError('Failed to load businesses from database');
         setBusinesses([]);
-      } finally {
-        setLoading(false);
+      } else {
+        // Basic validation and normalization for fetched data
+        const validBusinesses: Business[] = (data || []).map(b => ({
+          id: b.id,
+          name: b.name || 'Untitled Business',
+          owner: b.owner || 'Unknown',
+          description: b.description || '',
+          category: b.category || 'General',
+          logo: b.logo || 'https://via.placeholder.com/150/CCCCCC/000000?text=No+Logo',
+          contact: b.contact || '',
+        }));
+        setBusinesses(validBusinesses);
       }
-    };
+    } catch (err) {
+      console.error('Unexpected error fetching businesses:', err);
+      setError('An unexpected error occurred');
+      setBusinesses([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchBusinesses();
   }, []);
 
   // Get unique categories (now based on fetched businesses)
   const businessCategories = useMemo(() => {
     const categorySet = new Set<string>();
-    businesses.forEach(business => categorySet.add(business.category));
+    businesses.forEach(business => {
+      if (business.category) {
+        categorySet.add(business.category);
+      }
+    });
     return Array.from(categorySet).sort();
   }, [businesses]);
 
@@ -92,6 +99,29 @@ export function Showcase() {
       return matchesSearch && matchesCategory;
     });
   }, [searchTerm, selectedCategory]);
+
+  // Handle successful business form submission
+  const handleBusinessFormSuccess = () => {
+    setShowBusinessForm(false);
+    fetchBusinesses(); // Refresh the businesses list
+  };
+
+  // Handle business form cancellation
+  const handleBusinessFormCancel = () => {
+    setShowBusinessForm(false);
+  };
+
+  // Determine contact link based on contact type
+  const getContactLink = (contact: string) => {
+    if (contact.includes('@')) {
+      return `mailto:${contact}`;
+    } else if (contact.startsWith('http')) {
+      return contact;
+    } else if (contact.match(/^\+?\d/)) {
+      return `tel:${contact}`;
+    }
+    return `mailto:${contact}`;
+  };
 
   return (
     <div>
@@ -172,78 +202,118 @@ export function Showcase() {
           {activeTab === 'businesses' && (
             <div>
               <div className="flex items-center justify-between mb-6">
-                <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-                  {filteredBusinesses.length} {filteredBusinesses.length === 1 ? 'business' : 'businesses'} found
-                </p>
-                <button className="btn-primary inline-flex items-center space-x-2 px-4 py-2 font-medium rounded-lg">
+                <div className="flex items-center gap-4">
+                  <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
+                    {loading ? 'Loading...' : `${filteredBusinesses.length} ${filteredBusinesses.length === 1 ? 'business' : 'businesses'} found`}
+                  </p>
+                  {error && (
+                    <p className="text-red-500 text-sm">
+                      {error}
+                    </p>
+                  )}
+                </div>
+                <button 
+                  onClick={() => setShowBusinessForm(true)}
+                  className="btn-primary inline-flex items-center space-x-2 px-4 py-2 font-medium rounded-lg hover:transform hover:-translate-y-1 transition-all duration-200"
+                >
                   <Plus className="h-4 w-4" />
                   <span>List Your Business</span>
                 </button>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredBusinesses.map((business) => (
-                  <div key={business.id} className="card p-6">
-                    <div className="text-center mb-4">
-                      <img
-                        src={business.logo}
-                        alt={business.name}
-                        className="w-20 h-20 rounded-full object-cover mx-auto mb-4"
-                        loading="lazy"
-                      />
-                      <h3 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
-                        {business.name}
-                      </h3>
-                      <p className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
-                        by {business.owner}
-                      </p>
-                      <span
-                        className="px-3 py-1 text-xs rounded-full"
-                        style={{ 
-                          backgroundColor: 'var(--tertiary)',
-                          color: 'var(--text-primary)'
-                        }}
-                      >
-                        {business.category}
-                      </span>
-                    </div>
-                    
-                    <p className="text-sm mb-4 text-center" style={{ color: 'var(--text-secondary)' }}>
-                      {business.description}
-                    </p>
-                    
-                    <div className="space-y-2">
-                      <button
-                        onClick={() => setSelectedBusiness(business)}
-                        className="btn-primary w-full py-2 font-medium rounded-lg"
-                      >
-                        Learn More
-                      </button>
-                      <a
-                        href={`mailto:${business.contact}`}
-                        className="w-full py-2 font-medium rounded-lg border-2 text-center block transition-colors hover:bg-opacity-10"
-                        style={{ 
-                          borderColor: 'var(--primary)',
-                          color: 'var(--primary)'
-                        }}
-                      >
-                        Contact
-                      </a>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {filteredBusinesses.length === 0 && (
+              {loading ? (
                 <div className="text-center py-12">
-                  <Briefcase className="h-16 w-16 mx-auto mb-4 opacity-50" style={{ color: 'var(--text-secondary)' }} />
-                  <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                    No businesses found
-                  </h3>
-                  <p style={{ color: 'var(--text-secondary)' }}>
-                    Try adjusting your search criteria.
-                  </p>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" 
+                       style={{ borderColor: 'var(--primary)' }}></div>
+                  <p style={{ color: 'var(--text-secondary)' }}>Loading businesses...</p>
                 </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredBusinesses.map((business) => (
+                      <div key={business.id} className="card p-6 hover:transform hover:-translate-y-1 transition-all duration-200">
+                        <div className="text-center mb-4">
+                          <img
+                            src={business.logo}
+                            alt={business.name}
+                            className="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-2"
+                            style={{ borderColor: 'var(--border-color)' }}
+                            loading="lazy"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = 'https://via.placeholder.com/150/CCCCCC/000000?text=No+Logo';
+                            }}
+                          />
+                          <h3 className="text-xl font-semibold mb-1 break-words" style={{ color: 'var(--text-primary)' }}>
+                            {business.name}
+                          </h3>
+                          <p className="text-sm mb-2 break-words" style={{ color: 'var(--text-secondary)' }}>
+                            by {business.owner}
+                          </p>
+                          {business.category && (
+                            <span
+                              className="px-3 py-1 text-xs rounded-full"
+                              style={{ 
+                                backgroundColor: 'var(--tertiary)',
+                                color: 'var(--text-primary)'
+                              }}
+                            >
+                              {business.category}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <p className="text-sm mb-4 text-center line-clamp-3 break-words" style={{ color: 'var(--text-secondary)' }}>
+                          {business.description || 'No description available.'}
+                        </p>
+                        
+                        <div className="space-y-2">
+                          <button
+                            onClick={() => setSelectedBusiness(business)}
+                            className="btn-primary w-full py-2 font-medium rounded-lg hover:transform hover:-translate-y-0.5 transition-all duration-200"
+                          >
+                            Learn More
+                          </button>
+                          {business.contact && (
+                            <a
+                              href={getContactLink(business.contact)}
+                              target={business.contact.startsWith('http') ? '_blank' : undefined}
+                              rel={business.contact.startsWith('http') ? 'noopener noreferrer' : undefined}
+                              className="w-full py-2 font-medium rounded-lg border-2 text-center block transition-all duration-200 hover:bg-opacity-10 hover:transform hover:-translate-y-0.5"
+                              style={{ 
+                                borderColor: 'var(--primary)',
+                                color: 'var(--primary)'
+                              }}
+                            >
+                              Contact
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {filteredBusinesses.length === 0 && !loading && (
+                    <div className="text-center py-12">
+                      <Briefcase className="h-16 w-16 mx-auto mb-4 opacity-50" style={{ color: 'var(--text-secondary)' }} />
+                      <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                        No businesses found
+                      </h3>
+                      <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
+                        {searchTerm || selectedCategory ? 'Try adjusting your search criteria.' : 'Be the first to list your business!'}
+                      </p>
+                      {!searchTerm && !selectedCategory && (
+                        <button 
+                          onClick={() => setShowBusinessForm(true)}
+                          className="btn-primary inline-flex items-center space-x-2 px-6 py-3 font-medium rounded-lg"
+                        >
+                          <Plus className="h-4 w-4" />
+                          <span>List Your Business</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -255,7 +325,7 @@ export function Showcase() {
                 <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
                   {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} found
                 </p>
-                <button className="btn-primary inline-flex items-center space-x-2 px-4 py-2 font-medium rounded-lg">
+                <button className="btn-primary inline-flex items-center space-x-2 px-4 py-2 font-medium rounded-lg hover:transform hover:-translate-y-1 transition-all duration-200">
                   <Plus className="h-4 w-4" />
                   <span>Add Your Product</span>
                 </button>
@@ -263,7 +333,7 @@ export function Showcase() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {filteredProducts.map((product) => (
-                  <div key={product.id} className="card overflow-hidden group cursor-pointer"
+                  <div key={product.id} className="card overflow-hidden group cursor-pointer hover:transform hover:-translate-y-1 transition-all duration-200"
                        onClick={() => setSelectedProduct(product)}>
                     <div className="relative">
                       <img
@@ -286,17 +356,17 @@ export function Showcase() {
                     </div>
                     
                     <div className="p-4">
-                      <h3 className="font-semibold mb-2 line-clamp-2" style={{ color: 'var(--text-primary)' }}>
+                      <h3 className="font-semibold mb-2 line-clamp-2 break-words" style={{ color: 'var(--text-primary)' }}>
                         {product.name}
                       </h3>
-                      <p className="text-sm mb-2 line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
+                      <p className="text-sm mb-2 line-clamp-2 break-words" style={{ color: 'var(--text-secondary)' }}>
                         {product.description}
                       </p>
                       <div className="flex items-center justify-between">
                         <span className="font-bold" style={{ color: 'var(--primary)' }}>
                           {product.price}
                         </span>
-                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                        <span className="text-xs break-words" style={{ color: 'var(--text-secondary)' }}>
                           by {product.seller}
                         </span>
                       </div>
@@ -321,6 +391,21 @@ export function Showcase() {
         </div>
       </section>
 
+      {/* Business Form Modal */}
+      {showBusinessForm && (
+        <Modal
+          isOpen={true}
+          onClose={handleBusinessFormCancel}
+          title="List Your Business"
+          size="xl"
+        >
+          <BusinessForm
+            onCancel={handleBusinessFormCancel}
+            onSuccess={handleBusinessFormSuccess}
+          />
+        </Modal>
+      )}
+
       {/* Business Detail Modal */}
       {selectedBusiness && (
         <Modal
@@ -334,44 +419,55 @@ export function Showcase() {
               <img
                 src={selectedBusiness.logo}
                 alt={selectedBusiness.name}
-                className="w-24 h-24 rounded-full object-cover mx-auto mb-4"
+                className="w-24 h-24 rounded-full object-cover mx-auto mb-4 border-2"
+                style={{ borderColor: 'var(--border-color)' }}
                 loading="lazy"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = 'https://via.placeholder.com/150/CCCCCC/000000?text=No+Logo';
+                }}
               />
-              <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+              <h2 className="text-2xl font-bold mb-2 break-words" style={{ color: 'var(--text-primary)' }}>
                 {selectedBusiness.name}
               </h2>
-              <p className="text-lg mb-2" style={{ color: 'var(--text-secondary)' }}>
+              <p className="text-lg mb-2 break-words" style={{ color: 'var(--text-secondary)' }}>
                 Founded by {selectedBusiness.owner}
               </p>
-              <span
-                className="px-4 py-2 rounded-full"
-                style={{ 
-                  backgroundColor: 'var(--tertiary)',
-                  color: 'var(--text-primary)'
-                }}
-              >
-                {selectedBusiness.category}
-              </span>
+              {selectedBusiness.category && (
+                <span
+                  className="px-4 py-2 rounded-full"
+                  style={{ 
+                    backgroundColor: 'var(--tertiary)',
+                    color: 'var(--text-primary)'
+                  }}
+                >
+                  {selectedBusiness.category}
+                </span>
+              )}
             </div>
             
             <div>
               <h3 className="text-lg font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
                 About the Business
               </h3>
-              <p className="text-base leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                {selectedBusiness.description}
+              <p className="text-base leading-relaxed break-words" style={{ color: 'var(--text-secondary)' }}>
+                {selectedBusiness.description || 'No description available.'}
               </p>
             </div>
             
             <div className="flex space-x-4">
-              <a
-                href={`mailto:${selectedBusiness.contact}`}
-                className="btn-primary flex-1 inline-flex items-center justify-center space-x-2 py-3 font-medium rounded-lg"
-              >
-                <Mail className="h-5 w-5" />
-                <span>Contact Business</span>
-              </a>
-              <button className="flex-1 py-3 font-medium rounded-lg border-2 transition-colors hover:bg-opacity-10"
+              {selectedBusiness.contact && (
+                <a
+                  href={getContactLink(selectedBusiness.contact)}
+                  target={selectedBusiness.contact.startsWith('http') ? '_blank' : undefined}
+                  rel={selectedBusiness.contact.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  className="btn-primary flex-1 inline-flex items-center justify-center space-x-2 py-3 font-medium rounded-lg hover:transform hover:-translate-y-0.5 transition-all duration-200"
+                >
+                  <Mail className="h-5 w-5" />
+                  <span>Contact Business</span>
+                </a>
+              )}
+              <button className="flex-1 py-3 font-medium rounded-lg border-2 transition-all duration-200 hover:bg-opacity-10 hover:transform hover:-translate-y-0.5"
                       style={{ 
                         borderColor: 'var(--primary)',
                         color: 'var(--primary)'
@@ -410,7 +506,7 @@ export function Showcase() {
                 >
                   {selectedProduct.category}
                 </span>
-                <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>
+                <p className="text-sm mt-2 break-words" style={{ color: 'var(--text-secondary)' }}>
                   by {selectedProduct.seller}
                 </p>
               </div>
@@ -425,16 +521,16 @@ export function Showcase() {
               <h3 className="text-lg font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
                 Product Description
               </h3>
-              <p className="text-base leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+              <p className="text-base leading-relaxed break-words" style={{ color: 'var(--text-secondary)' }}>
                 {selectedProduct.description}
               </p>
             </div>
             
             <div className="flex space-x-4">
-              <button className="btn-primary flex-1 py-3 font-medium rounded-lg">
+              <button className="btn-primary flex-1 py-3 font-medium rounded-lg hover:transform hover:-translate-y-0.5 transition-all duration-200">
                 Contact Seller
               </button>
-              <button className="flex-1 py-3 font-medium rounded-lg border-2 transition-colors hover:bg-opacity-10"
+              <button className="flex-1 py-3 font-medium rounded-lg border-2 transition-all duration-200 hover:bg-opacity-10 hover:transform hover:-translate-y-0.5"
                       style={{ 
                         borderColor: 'var(--primary)',
                         color: 'var(--primary)'
