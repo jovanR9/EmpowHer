@@ -79,7 +79,7 @@ export function StoryForm({ story, onCancel, onSuccess }: StoryFormProps) {
       excerpt: formData.excerpt.trim(),
       body: formData.body.trim(),
       author: formData.author.trim(),
-      image: formData.image.trim() || 'https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=800',
+      image: formData.image.trim(),
       tags: formData.tags
         .split(',')
         .map(tag => tag.trim())
