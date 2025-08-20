@@ -5,7 +5,8 @@ import { SearchBar } from '../components/Common/SearchBar';
 import { Modal } from '../components/Common/Modal';
 import { BusinessForm } from '../components/Showcase/businessForm';
 import { supabase } from '../lib/supabaseClient'; // Import supabase
-import { mockProducts, Business, Product } from '../data/mockData'; // Keep mockProducts for now
+import { Business } from '../data/mockData'; // Keep mockProducts for now
+import { Product } from '../types/Product'; // Define a new Product type based on Supabase schema
 
 export function Showcase() {
   const [activeTab, setActiveTab] = useState<"businesses" | "products">(
@@ -45,7 +46,7 @@ export function Showcase() {
           owner: b.owner || 'Unknown',
           description: b.description || '',
           category: b.category || 'General',
-          logo: b.logo || 'https://via.placeholder.com/150/CCCCCC/000000?text=No+Logo',
+          logo: b.logo || '/images/placeholder-business.svg',
           contact: b.contact || '',
         }));
         setBusinesses(validBusinesses);
@@ -63,6 +64,54 @@ export function Showcase() {
     fetchBusinesses();
   }, []);
 
+  // State for fetched products
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [errorProducts, setErrorProducts] = useState<string | null>(null);
+
+  // Fetch products from Supabase
+  const fetchProducts = async () => {
+    try {
+      setLoadingProducts(true);
+      setErrorProducts(null);
+
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, businesses(name)')
+        .order('name');
+
+      if (error) {
+        console.error('Error fetching products:', error);
+        setErrorProducts('Failed to load products from database');
+        setProducts([]);
+      } else {
+        const validProducts: Product[] = (data || []).map((p: any) => ({
+          id: p.id,
+          created_at: p.created_at,
+          name: p.name || 'Untitled Product',
+          description: p.description || '',
+          image_url: p.image_url || '/images/placeholder-product.svg',
+          price: p.price || null,
+          category: p.category || 'General',
+          businesses: p.businesses || null, // Directly assign the nested businesses object
+        }));
+        setProducts(validProducts);
+      }
+    } catch (err) {
+      console.error('Unexpected error fetching products:', err);
+      setErrorProducts('An unexpected error occurred');
+      setProducts([]);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'products') {
+      fetchProducts();
+    }
+  }, [activeTab]);
+
   // Get unique categories (now based on fetched businesses)
   const businessCategories = useMemo(() => {
     const categorySet = new Set<string>();
@@ -76,9 +125,13 @@ export function Showcase() {
 
   const productCategories = useMemo(() => {
     const categorySet = new Set<string>();
-    mockProducts.forEach((product) => categorySet.add(product.category));
+    products.forEach((product) => {
+      if (product.category) {
+        categorySet.add(product.category);
+      }
+    });
     return Array.from(categorySet).sort();
-  }, []);
+  }, [products]);
 
   // Filter businesses (now based on fetched businesses)
   const filteredBusinesses = useMemo(() => {
@@ -95,16 +148,15 @@ export function Showcase() {
 
   // Filter products
   const filteredProducts = useMemo(() => {
-    return mockProducts.filter((product) => {
+    return products.filter((product) => {
       const matchesSearch =
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.seller.toLowerCase().includes(searchTerm.toLowerCase());
+        (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesCategory =
         !selectedCategory || product.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [searchTerm, selectedCategory]);
+  }, [products, searchTerm, selectedCategory]);
 
   // Handle successful business form submission
   const handleBusinessFormSuccess = () => {
@@ -271,7 +323,7 @@ export function Showcase() {
                             loading="lazy"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
-                              target.src = 'https://via.placeholder.com/150/CCCCCC/000000?text=No+Logo';
+                              target.src = '/images/placeholder-business.svg';
                             }}
                           />
                           <h3 className="text-xl font-semibold mb-1 break-words" style={{ color: 'var(--text-primary)' }}>
@@ -371,10 +423,14 @@ export function Showcase() {
                        onClick={() => setSelectedProduct(product)}>
                     <div className="relative">
                       <img
-                        src={product.image}
+                        src={product.image_url || '/images/placeholder-product.svg'}
                         alt={product.name}
                         className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/images/placeholder-product.svg';
+                        }}
                       />
                       <div className="absolute top-2 right-2">
                         <span
@@ -401,10 +457,10 @@ export function Showcase() {
                           className="font-bold"
                           style={{ color: "var(--primary)" }}
                         >
-                          {product.price}
+                          {product.price !== null ? `${product.price.toFixed(2)}` : 'N/A'}
                         </span>
                         <span className="text-xs break-words" style={{ color: 'var(--text-secondary)' }}>
-                          by {product.seller}
+                          by {product.businesses ? product.businesses.name : 'Unknown Seller'}
                         </span>
                       </div>
                     </div>
@@ -467,7 +523,7 @@ export function Showcase() {
                 loading="lazy"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  target.src = 'https://via.placeholder.com/150/CCCCCC/000000?text=No+Logo';
+                  target.src = '/images/placeholder-business.svg';
                 }}
               />
               <h2 className="text-2xl font-bold mb-2 break-words" style={{ color: 'var(--text-primary)' }}>
@@ -535,10 +591,14 @@ export function Showcase() {
         >
           <div className="space-y-6">
             <img
-              src={selectedProduct.image}
+              src={selectedProduct.image_url || '/images/placeholder-product.svg'}
               alt={selectedProduct.name}
               className="w-full h-64 object-cover rounded-lg"
               loading="lazy"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = '/images/placeholder-product.svg';
+              }}
             />
 
             <div className="flex items-center justify-between">
@@ -553,7 +613,7 @@ export function Showcase() {
                   {selectedProduct.category}
                 </span>
                 <p className="text-sm mt-2 break-words" style={{ color: 'var(--text-secondary)' }}>
-                  by {selectedProduct.seller}
+                  by {selectedProduct.businesses ? selectedProduct.businesses.name : 'Unknown Seller'}
                 </p>
               </div>
               <div className="text-right">
@@ -561,7 +621,7 @@ export function Showcase() {
                   className="text-2xl font-bold"
                   style={{ color: "var(--primary)" }}
                 >
-                  {selectedProduct.price}
+                  {selectedProduct.price !== null ? `${selectedProduct.price.toFixed(2)}` : 'N/A'}
                 </p>
               </div>
             </div>
