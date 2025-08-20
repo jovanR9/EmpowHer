@@ -1,9 +1,22 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { MessageCircle, Users, Search, MapPin, Star, Clock, Send } from 'lucide-react';
 import { Hero } from '../components/Common/Hero';
 import { SearchBar } from '../components/Common/SearchBar';
 import { Modal } from '../components/Common/Modal';
-import { mockProfiles, mockForumTopics, Profile, ForumTopic } from '../data/mockData';
+import { mockForumTopics, ForumTopic } from '../data/mockData'; // Keep mockForumTopics
+import { supabase } from '../lib/supabaseClient'; // Import supabase
+
+// Define the Profile interface as provided earlier
+interface Profile {
+  id: string;
+  name: string;
+  avatar: string;
+  type: 'mentor' | 'mentee';
+  availability: 'available' | 'busy';
+  location: string;
+  bio: string;
+  skills: string[];
+}
 
 export function Community() {
   const [activeTab, setActiveTab] = useState<'profiles' | 'forums'>('profiles');
@@ -13,19 +26,70 @@ export function Community() {
   const [selectedTopic, setSelectedTopic] = useState<ForumTopic | null>(null);
   const [newPost, setNewPost] = useState('');
 
-  // Get unique locations for filter
-  const locations = useMemo(() => {
-    const locationSet = new Set<string>();
-    mockProfiles.forEach(profile => {
-      const city = profile.location.split(',')[0];
-      locationSet.add(city);
-    });
-    return Array.from(locationSet).sort();
+  // State for fetched profiles
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch profiles from Supabase
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*');
+
+        if (error) {
+          console.error('Error fetching profiles:', error);
+          setError('Failed to load profiles from database');
+          setProfiles([]);
+        } else {
+          // Basic validation and normalization for fetched data
+          const validProfiles: Profile[] = (data || []).map(p => ({
+            id: p.id,
+            name: p.name || 'Unknown',
+            avatar: p.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${p.name}`, // Fallback to dicebear
+            type: p.type === 'mentor' || p.type === 'mentee' ? p.type : 'mentee',
+            availability: p.availability === 'available' || p.availability === 'busy' ? p.availability : 'busy',
+            location: p.location || '',
+            bio: p.bio || '',
+            skills: Array.isArray(p.skills) ? p.skills : [],
+          }));
+          setProfiles(validProfiles);
+        }
+      } catch (err) {
+        console.error('Unexpected error fetching profiles:', err);
+        setError('An unexpected error occurred');
+        setProfiles([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfiles();
   }, []);
 
-  // Filter profiles
+
+  // Get unique locations for filter (now based on fetched profiles)
+  const locations = useMemo(() => {
+    const locationSet = new Set<string>();
+    profiles.forEach(profile => { // Use 'profiles' state here
+      if (profile.location) {
+        const city = profile.location.split(',')[0]?.trim();
+        if (city) {
+          locationSet.add(city);
+        }
+      }
+    });
+    return Array.from(locationSet).sort();
+  }, [profiles]);
+
+  // Filter profiles (now based on fetched profiles)
   const filteredProfiles = useMemo(() => {
-    return mockProfiles.filter(profile => {
+    return profiles.filter(profile => { // Use 'profiles' state here
       const matchesSearch = profile.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           profile.bio.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           profile.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -33,9 +97,9 @@ export function Community() {
       const matchesLocation = !selectedLocation || profile.location.includes(selectedLocation);
       return matchesSearch && matchesType && matchesLocation;
     });
-  }, [searchTerm, selectedType, selectedLocation]);
+  }, [profiles, searchTerm, selectedType, selectedLocation]);
 
-  // Filter forum topics
+  // Filter forum topics (still using mock data)
   const filteredTopics = useMemo(() => {
     if (!searchTerm) return mockForumTopics;
     return mockForumTopics.filter(topic =>
@@ -58,6 +122,24 @@ export function Community() {
       setNewPost('');
     }
   };
+
+  if (loading) {
+    return (
+      <div>
+        <Hero
+          title="Connect with the Community"
+          subtitle="Find mentors, mentees, and collaborators to grow together."
+        />
+        <section className="py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto text-center">
+            <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
+              Loading profiles...
+            </p>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -146,6 +228,18 @@ export function Community() {
               </div>
             )}
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 rounded-lg" 
+                 style={{ 
+                   backgroundColor: 'var(--error-bg, #fee2e2)', 
+                   color: 'var(--error-text, #dc2626)',
+                   border: '1px solid var(--error-border, #fecaca)'
+                 }}>
+              {error}
+            </div>
+          )}
 
           {/* Profiles Tab */}
           {activeTab === 'profiles' && (
