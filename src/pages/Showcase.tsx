@@ -4,6 +4,7 @@ import { Hero } from '../components/Common/Hero';
 import { SearchBar } from '../components/Common/SearchBar';
 import { Modal } from '../components/Common/Modal';
 import { BusinessForm } from '../components/Showcase/businessForm';
+import { ProductForm } from '../components/Showcase/ProductForm';
 import { supabase } from '../lib/supabaseClient'; // Import supabase
 import { Business } from '../data/mockData'; // Keep mockProducts for now
 import { Product } from '../types/Product'; // Define a new Product type based on Supabase schema
@@ -17,6 +18,7 @@ export function Showcase() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [showBusinessForm, setShowBusinessForm] = useState(false);
+  const [showProductForm, setShowProductForm] = useState(false);
 
   // State for fetched businesses
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -167,6 +169,17 @@ export function Showcase() {
   // Handle business form cancellation
   const handleBusinessFormCancel = () => {
     setShowBusinessForm(false);
+  };
+
+  // Handle successful product form submission
+  const handleProductFormSuccess = () => {
+    setShowProductForm(false);
+    fetchProducts(); // Refresh the products list
+  };
+
+  // Handle product form cancellation
+  const handleProductFormCancel = () => {
+    setShowProductForm(false);
   };
 
   // Determine contact link based on contact type
@@ -411,7 +424,9 @@ export function Showcase() {
                   {filteredProducts.length}{" "}
                   {filteredProducts.length === 1 ? "product" : "products"} found
                 </p>
-                <button className="btn-primary inline-flex items-center space-x-2 px-4 py-2 font-medium rounded-lg hover:transform hover:-translate-y-1 transition-all duration-200">
+                <button 
+                  onClick={() => setShowProductForm(true)}
+                  className="btn-primary inline-flex items-center space-x-2 px-4 py-2 font-medium rounded-lg hover:transform hover:-translate-y-1 transition-all duration-200">
                   <Plus className="h-4 w-4" />
                   <span>Add Your Product</span>
                 </button>
@@ -651,6 +666,21 @@ export function Showcase() {
               </button>
             </div>
           </div>
+        </Modal>
+      )}
+
+      {/* Product Form Modal */}
+      {showProductForm && (
+        <Modal
+          isOpen={true}
+          onClose={handleProductFormCancel}
+          title="Add Your Product"
+          size="xl"
+        >
+          <ProductForm
+            onCancel={handleProductFormCancel}
+            onSuccess={handleProductFormSuccess}
+          />
         </Modal>
       )}
     </div>
