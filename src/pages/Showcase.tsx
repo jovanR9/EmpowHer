@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Briefcase, ShoppingBag, Plus, Search, Filter, Eye, ExternalLink, Mail } from 'lucide-react';
 import { Hero } from '../components/Common/Hero';
 import { SearchBar } from '../components/Common/SearchBar';
 import { Modal } from '../components/Common/Modal';
-import { mockBusinesses, mockProducts, Business, Product } from '../data/mockData';
+import { supabase } from '../lib/supabaseClient'; // Import supabase
+import { mockProducts, Business, Product } from '../data/mockData'; // Keep mockProducts for now
 
 export function Showcase() {
   const [activeTab, setActiveTab] = useState<'businesses' | 'products'>('businesses');
@@ -12,12 +13,57 @@ export function Showcase() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
 
-  // Get unique categories
+  // State for fetched businesses
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch businesses from Supabase
+  useEffect(() => {
+    const fetchBusinesses = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const { data, error } = await supabase
+          .from('businesses')
+          .select('*');
+
+        if (error) {
+          console.error('Error fetching businesses:', error);
+          setError('Failed to load businesses from database');
+          setBusinesses([]);
+        } else {
+          // Basic validation and normalization for fetched data
+          const validBusinesses: Business[] = (data || []).map(b => ({
+            id: b.id,
+            name: b.name || 'Untitled Business',
+            owner: b.owner || 'Unknown',
+            description: b.description || '',
+            category: b.category || 'General',
+            logo: b.logo || 'https://via.placeholder.com/150/CCCCCC/000000?text=No+Logo',
+            contact: b.contact || '',
+          }));
+          setBusinesses(validBusinesses);
+        }
+      } catch (err) {
+        console.error('Unexpected error fetching businesses:', err);
+        setError('An unexpected error occurred');
+        setBusinesses([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBusinesses();
+  }, []);
+
+  // Get unique categories (now based on fetched businesses)
   const businessCategories = useMemo(() => {
     const categorySet = new Set<string>();
-    mockBusinesses.forEach(business => categorySet.add(business.category));
+    businesses.forEach(business => categorySet.add(business.category));
     return Array.from(categorySet).sort();
-  }, []);
+  }, [businesses]);
 
   const productCategories = useMemo(() => {
     const categorySet = new Set<string>();
@@ -25,16 +71,16 @@ export function Showcase() {
     return Array.from(categorySet).sort();
   }, []);
 
-  // Filter businesses
+  // Filter businesses (now based on fetched businesses)
   const filteredBusinesses = useMemo(() => {
-    return mockBusinesses.filter(business => {
+    return businesses.filter(business => {
       const matchesSearch = business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           business.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           business.description.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = !selectedCategory || business.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [searchTerm, selectedCategory]);
+  }, [businesses, searchTerm, selectedCategory]);
 
   // Filter products
   const filteredProducts = useMemo(() => {
