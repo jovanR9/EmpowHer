@@ -29,23 +29,30 @@ export function StoryDetail() {
   useEffect(() => {
     const fetchStory = async () => {
       setLoading(true);
-      let foundStory = null;
+      let foundStory: Story | null = null;
 
       // Check if it's a user-created story (from local storage)
       if (id && id.startsWith('user-')) {
-        foundStory = userStories.find(s => s.id === id);
+        const userStory = userStories.find(s => s.id === id);
+        foundStory = userStory || null;
       } else if (id) {
         // Otherwise, try fetching from Supabase
-        const { data, error } = await supabase
-          .from('stories')
-          .select('*')
-          .eq('id', id)
-          .single();
+        try {
+          const { data, error } = await supabase
+            .from('stories')
+            .select('*')
+            .eq('id', id)
+            .single();
 
-        if (error) {
-          console.error('Error fetching story from Supabase:', error);
-        } else {
-          foundStory = data as Story;
+          if (error) {
+            console.error('Error fetching story from Supabase:', error);
+            foundStory = null;
+          } else {
+            foundStory = data as Story;
+          }
+        } catch (error) {
+          console.error('Error fetching story:', error);
+          foundStory = null;
         }
       }
       setStory(foundStory);
@@ -95,17 +102,22 @@ export function StoryDetail() {
         setTimeout(() => navigate('/stories'), 1500);
       } else {
         // Attempt to delete from Supabase
-        const { error } = await supabase
-          .from('stories')
-          .delete()
-          .eq('id', story.id);
+        try {
+          const { error } = await supabase
+            .from('stories')
+            .delete()
+            .eq('id', story.id);
 
-        if (error) {
-          console.error('Error deleting story from Supabase:', error);
-          setToast({ message: 'Failed to delete story from Supabase', type: 'error' });
-        } else {
-          setToast({ message: 'Story deleted successfully from Supabase', type: 'success' });
-          setTimeout(() => navigate('/stories'), 1500);
+          if (error) {
+            console.error('Error deleting story from Supabase:', error);
+            setToast({ message: 'Failed to delete story from Supabase', type: 'error' });
+          } else {
+            setToast({ message: 'Story deleted successfully from Supabase', type: 'success' });
+            setTimeout(() => navigate('/stories'), 1500);
+          }
+        } catch (error) {
+          console.error('Error deleting story:', error);
+          setToast({ message: 'Failed to delete story', type: 'error' });
         }
       }
     }
@@ -120,7 +132,8 @@ export function StoryDetail() {
           url: window.location.href,
         });
       } catch (error) {
-        // User cancelled sharing
+        // User cancelled sharing or error occurred
+        console.log('Sharing cancelled or failed:', error);
       }
     } else {
       // Fallback to clipboard
@@ -165,18 +178,20 @@ export function StoryDetail() {
         </div>
 
         {/* Hero Image */}
-        <div className="aspect-w-16 aspect-h-9 mb-8">
-          <img
-            src={story.image}
-            alt={story.title}
-            className="w-full h-64 md:h-96 object-cover rounded-lg"
-            loading="lazy"
-          />
-        </div>
+        {story.image && (
+          <div className="aspect-w-16 aspect-h-9 mb-8">
+            <img
+              src={story.image}
+              alt={story.title}
+              className="w-full h-64 md:h-96 object-cover rounded-lg"
+              loading="lazy"
+            />
+          </div>
+        )}
 
         {/* Story Header */}
         <header className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4 slide-up"
+          <h1 className="text-3xl md:text-4xl font-bold mb-4 slide-up break-words"
               style={{ color: 'var(--text-primary)' }}>
             {story.title}
           </h1>
@@ -185,7 +200,7 @@ export function StoryDetail() {
                style={{ color: 'var(--text-secondary)' }}>
             <div className="flex items-center space-x-2">
               <User className="h-5 w-5" />
-              <span className="font-medium">{story.author}</span>
+              <span className="font-medium break-words">{story.author}</span>
             </div>
             <div className="flex items-center space-x-2">
               <Calendar className="h-5 w-5" />
@@ -207,22 +222,22 @@ export function StoryDetail() {
               {story.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center space-x-1 px-3 py-1 rounded-full text-sm"
+                  className="inline-flex items-center space-x-1 px-3 py-1 rounded-full text-sm break-words"
                   style={{ 
                     backgroundColor: 'var(--primary)',
                     color: 'var(--text-primary)',
                     opacity: 0.8
                   }}
                 >
-                  <Tag className="h-3 w-3" />
-                  <span>{tag}</span>
+                  <Tag className="h-3 w-3 flex-shrink-0" />
+                  <span className="break-words">{tag}</span>
                 </span>
               ))}
             </div>
           )}
 
           {/* Story Actions */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center space-x-4">
               <button
                 onClick={handleShare}
@@ -265,12 +280,12 @@ export function StoryDetail() {
         {/* Story Content */}
         <div className="prose prose-lg max-w-none mb-12 fade-in"
              style={{ color: 'var(--text-primary)' }}>
-          <div className="text-xl mb-6 font-medium leading-relaxed"
+          <div className="text-xl mb-6 font-medium leading-relaxed break-words"
                style={{ color: 'var(--text-secondary)' }}>
             {story.excerpt}
           </div>
           
-          <div className="text-lg leading-relaxed whitespace-pre-wrap">
+          <div className="text-lg leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">
             {story.body}
           </div>
         </div>
@@ -281,8 +296,8 @@ export function StoryDetail() {
                background: `linear-gradient(135deg, var(--primary), var(--secondary))`,
                color: 'var(--text-primary)'
              }}>
-          <h3 className="text-2xl font-bold mb-4">Inspired by this story?</h3>
-          <p className="text-lg mb-6 opacity-90">
+          <h3 className="text-2xl font-bold mb-4 break-words">Inspired by this story?</h3>
+          <p className="text-lg mb-6 opacity-90 break-words">
             Share your own journey and inspire other women in our community.
           </p>
           <Link
@@ -309,18 +324,20 @@ export function StoryDetail() {
                   to={`/stories/${relatedStory.id}`}
                   className="card overflow-hidden group"
                 >
-                  <img
-                    src={relatedStory.image}
-                    alt={relatedStory.title}
-                    className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
-                  />
+                  {relatedStory.image && (
+                    <img
+                      src={relatedStory.image}
+                      alt={relatedStory.title}
+                      className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                  )}
                   <div className="p-4">
-                    <h3 className="font-semibold mb-2 line-clamp-2" 
+                    <h3 className="font-semibold mb-2 line-clamp-2 break-words" 
                         style={{ color: 'var(--text-primary)' }}>
                       {relatedStory.title}
                     </h3>
-                    <p className="text-sm line-clamp-2" 
+                    <p className="text-sm line-clamp-2 break-words" 
                        style={{ color: 'var(--text-secondary)' }}>
                       {relatedStory.excerpt}
                     </p>
