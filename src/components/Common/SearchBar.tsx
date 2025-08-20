@@ -1,5 +1,5 @@
-import React from 'react';
-import { Search } from 'lucide-react';
+import React from "react";
+import { Search } from "lucide-react";
 
 interface SearchBarProps {
   value: string;
@@ -8,21 +8,36 @@ interface SearchBarProps {
   className?: string;
 }
 
-export function SearchBar({ value, onChange, placeholder = 'Search...', className = '' }: SearchBarProps) {
+export function SearchBar({
+  value,
+  onChange,
+  placeholder = "Search...",
+  className = "",
+}: SearchBarProps) {
   return (
-    <div className={`relative ${className}`}>
-      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5" 
-              style={{ color: 'var(--text-secondary)' }} />
+    <div
+      className={`flex items-center rounded-lg border px-3 ${className}`}
+      style={{
+        backgroundColor: "var(--bg-secondary)",
+        borderColor: "var(--border-color)",
+      }}
+    >
+      {/* Search icon inline */}
+      <Search
+        className="h-5 w-5 mr-2"
+        style={{ color: "var(--text-secondary)" }}
+      />
+
+      {/* Input field keeps its original size */}
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="input-field pl-10 pr-4 py-3 w-full rounded-lg"
+        // className="input-field flex-1 py-3 pr-4"
+        className="flex-1 py-3 pr-4 bg-transparent focus:outline-none"
         style={{
-          backgroundColor: 'var(--bg-secondary)',
-          borderColor: 'var(--border-color)',
-          color: 'var(--text-primary)'
+          color: "var(--text-primary)",
         }}
       />
     </div>
