@@ -71,6 +71,11 @@ export function Showcase() {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [errorProducts, setErrorProducts] = useState<string | null>(null);
 
+  // State for products of the selected business
+  const [businessProducts, setBusinessProducts] = useState<Product[]>([]);
+  const [loadingBusinessProducts, setLoadingBusinessProducts] = useState(false);
+  const [errorBusinessProducts, setErrorBusinessProducts] = useState<string | null>(null);
+
   // Fetch products from Supabase
   const fetchProducts = async () => {
     try {
@@ -113,6 +118,52 @@ export function Showcase() {
       fetchProducts();
     }
   }, [activeTab]);
+
+  // Fetch products for a specific business
+  const fetchBusinessProducts = async (businessId: string) => {
+    try {
+      setLoadingBusinessProducts(true);
+      setErrorBusinessProducts(null);
+
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, businesses(name)')
+        .eq('business_id', businessId)
+        .order('name');
+
+      if (error) {
+        console.error('Error fetching business products:', error);
+        setErrorBusinessProducts('Failed to load products for this business');
+        setBusinessProducts([]);
+      } else {
+        const validProducts: Product[] = (data || []).map((p: any) => ({
+          id: p.id,
+          created_at: p.created_at,
+          name: p.name || 'Untitled Product',
+          description: p.description || '',
+          image_url: p.image_url || '/images/placeholder-product.svg',
+          price: p.price || null,
+          category: p.category || 'General',
+          businesses: p.businesses || null,
+        }));
+        setBusinessProducts(validProducts);
+      }
+    } catch (err) {
+      console.error('Unexpected error fetching business products:', err);
+      setErrorBusinessProducts('An unexpected error occurred');
+      setBusinessProducts([]);
+    } finally {
+      setLoadingBusinessProducts(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedBusiness) {
+      fetchBusinessProducts(selectedBusiness.id);
+    } else {
+      setBusinessProducts([]); // Clear products when no business is selected
+    }
+  }, [selectedBusiness]);
 
   // Get unique categories (now based on fetched businesses)
   const businessCategories = useMemo(() => {
@@ -591,6 +642,49 @@ export function Showcase() {
                       }}>
                 View Products
               </button>
+            </div>
+
+            {/* Products from this Business */}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
+                Products by {selectedBusiness.name}
+              </h3>
+              {loadingBusinessProducts ? (
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-2" 
+                       style={{ borderColor: 'var(--primary)' }}></div>
+                  <p style={{ color: 'var(--text-secondary)' }}>Loading products...</p>
+                </div>
+              ) : errorBusinessProducts ? (
+                <p className="text-red-500 text-center">Error: {errorBusinessProducts}</p>
+              ) : businessProducts.length === 0 ? (
+                <p className="text-center text-sm" style={{ color: 'var(--text-secondary)' }}>No products found for this business.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {businessProducts.map((product) => (
+                    <div key={product.id} className="card p-4 flex items-center space-x-4">
+                      <img
+                        src={product.image_url || '/images/placeholder-product.svg'}
+                        alt={product.name}
+                        className="w-16 h-16 object-cover rounded-lg"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/images/placeholder-product.svg';
+                        }}
+                      />
+                      <div>
+                        <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{product.name}</h4>
+                        {product.price !== null && (
+                          <p className="text-sm font-bold" style={{ color: 'var(--primary)' }}>${product.price.toFixed(2)}</p>
+                        )}
+                        {product.category && (
+                          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{product.category}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </Modal>
