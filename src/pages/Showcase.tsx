@@ -19,6 +19,7 @@ export function Showcase() {
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [showBusinessForm, setShowBusinessForm] = useState(false);
   const [showProductForm, setShowProductForm] = useState(false);
+  const [showBusinessProductsInModal, setShowBusinessProductsInModal] = useState(false);
 
   // State for fetched businesses
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -635,58 +636,61 @@ export function Showcase() {
                   <span>Contact Business</span>
                 </a>
               )}
-              <button className="flex-1 py-3 font-medium rounded-lg border-2 transition-all duration-200 hover:bg-opacity-10 hover:transform hover:-translate-y-0.5"
+              <button 
+                      onClick={() => setShowBusinessProductsInModal(prev => !prev)}
+                      className="flex-1 py-3 font-medium rounded-lg border-2 transition-all duration-200 hover:bg-opacity-10 hover:transform hover:-translate-y-0.5"
                       style={{ 
                         borderColor: 'var(--primary)',
                         color: 'var(--primary)'
                       }}>
-                View Products
+                {showBusinessProductsInModal ? 'Hide Products' : 'View Products'}
               </button>
             </div>
 
-            {/* Products from this Business */}
-            <div className="mt-8">
-              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
-                Products by {selectedBusiness.name}
-              </h3>
-              {loadingBusinessProducts ? (
-                <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-2" 
-                       style={{ borderColor: 'var(--primary)' }}></div>
-                  <p style={{ color: 'var(--text-secondary)' }}>Loading products...</p>
-                </div>
-              ) : errorBusinessProducts ? (
-                <p className="text-red-500 text-center">Error: {errorBusinessProducts}</p>
-              ) : businessProducts.length === 0 ? (
-                <p className="text-center text-sm" style={{ color: 'var(--text-secondary)' }}>No products found for this business.</p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {businessProducts.map((product) => (
-                    <div key={product.id} className="card p-4 flex items-center space-x-4">
-                      <img
-                        src={product.image_url || '/images/placeholder-product.svg'}
-                        alt={product.name}
-                        className="w-16 h-16 object-cover rounded-lg"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = '/images/placeholder-product.svg';
-                        }}
-                      />
-                      <div>
-                        <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{product.name}</h4>
-                        {product.price !== null && (
-                          <p className="text-sm font-bold" style={{ color: 'var(--primary)' }}>${product.price.toFixed(2)}</p>
-                        )}
-                        {product.category && (
-                          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{product.category}</p>
-                        )}
+            {showBusinessProductsInModal && (
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
+                  Products by {selectedBusiness.name}
+                </h3>
+                {loadingBusinessProducts ? (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-2" 
+                         style={{ borderColor: 'var(--primary)' }}></div>
+                    <p style={{ color: 'var(--text-secondary)' }}>Loading products...</p>
+                  </div>
+                ) : errorBusinessProducts ? (
+                  <p className="text-red-500 text-center">Error: {errorBusinessProducts}</p>
+                ) : businessProducts.length === 0 ? (
+                  <p className="text-center text-sm" style={{ color: 'var(--text-secondary)' }}>No products found for this business.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {businessProducts.map((product) => (
+                      <div key={product.id} className="card p-4 flex items-center space-x-4">
+                        <img
+                          src={product.image_url || '/images/placeholder-product.svg'}
+                          alt={product.name}
+                          className="w-16 h-16 object-cover rounded-lg"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/images/placeholder-product.svg';
+                          }}
+                        />
+                        <div>
+                          <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{product.name}</h4>
+                          {product.price !== null && (
+                            <p className="text-sm font-bold" style={{ color: 'var(--primary)' }}>${product.price.toFixed(2)}</p>
+                          )}
+                          {product.category && (
+                            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{product.category}</p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div> {/* Closing tag for <div className="space-y-6"> */}
         </Modal>
       )}
 
