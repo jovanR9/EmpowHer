@@ -23,12 +23,12 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-opacity-95 backdrop-blur-md border-b" 
+    <header className="sticky top-0 z-50 bg-opacity-95 backdrop-blur-md border-b rounded-lg mx-20 mt-2" 
             style={{ 
               backgroundColor: 'var(--bg-secondary)', 
               borderColor: 'var(--border-color)' 
             }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-8xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
