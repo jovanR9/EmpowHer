@@ -42,7 +42,7 @@ const normalizeStory = (story: any): Story => {
     id: story.id,
     created_at: story.created_at || story.createdAt,
     title: story.title || '',
-    excerpt: story.excerpt || '',
+    excerpt: story.excerpt ? (story.excerpt.length > 150 ? story.excerpt.substring(0, 150) + '...' : story.excerpt) : '',
     body: story.body || '',
     author: story.author || '',
     image: story.image,
