@@ -26,6 +26,7 @@ function App() {
               <Route path="/community" element={<Community />} />
               <Route path="/guides" element={<Guides />} />
               <Route path="/showcase" element={<Showcase />} />
+              <Route path="/showcase/:id" element={<Showcase />} />
             </Routes>
           </Layout>
         </Router>

@@ -78,7 +78,7 @@ export const mockBusinesses: Business[] = [
     owner: 'Alice Smith',
     description: 'Creating beautiful and empowering graphic designs for women-owned businesses.',
     category: 'Graphic Design',
-    logo: 'https://via.placeholder.com/150/FFC0CB/000000?text=EH',
+    logo: 'https://t3.ftcdn.net/jpg/03/82/52/88/360_F_382528893_kscSzE6TPttL5vhWQbyRkvKa58y8pA3P.webp',
     contact: 'alice@empowerherdesigns.com',
   },
   {
@@ -87,7 +87,7 @@ export const mockBusinesses: Business[] = [
     owner: 'Brenda Lee',
     description: 'Innovative web development and software solutions with a focus on social impact.',
     category: 'Technology',
-    logo: 'https://via.placeholder.com/150/ADD8E6/000000?text=SC',
+    logo: 'https://static.vecteezy.com/system/resources/thumbnails/000/227/854/small_2x/female-developer-vector.jpg',
     contact: 'brenda@shecodestech.com',
   },
 ];
@@ -97,9 +97,9 @@ export const mockProducts: Product[] = [
     id: 'p1',
     name: 'Empower Mug',
     description: 'A ceramic mug with an inspiring "Empower" print.',
-    seller: 'EmpowerHer Designs',
+    seller: 'EmpoHer Designs',
     category: 'Home Goods',
-    image: 'https://via.placeholder.com/300/FFD700/000000?text=Mug',
+    image: 'https://t3.ftcdn.net/jpg/03/82/52/88/360_F_382528893_kscSzE6TPttL5vhWQbyRkvKa58y8pA3P.jpg',
     price: '$15.00',
   },
   {
@@ -126,7 +126,7 @@ Step 3: Register Your Business.
 Step 4: Build Your Team. 
 Step 5: Market Your Business.`,
     category: 'Business',
-    image: 'https://via.placeholder.com/400/FFB6C1/000000?text=BusinessGuide',
+    image: 'https://images.unsplash.com/photo-1664575602276-acd073f104c1?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     readTime: 10,
   },
   {
@@ -141,7 +141,7 @@ Key areas include:
 - Understanding tax obligations. 
 - Planning for retirement.`,
     category: 'Financial',
-    image: 'https://via.placeholder.com/400/87CEEB/000000?text=FinanceGuide',
+    image: 'https://images.unsplash.com/photo-1624953901718-e24ee7200b85?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     readTime: 8,
   },
 ];

@@ -1,10 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Users, BookOpen, Briefcase, TrendingUp } from 'lucide-react';
-import { Hero } from '../components/Common/Hero';
-import { StoryCard } from '../components/Stories/StoryCard';
-import { mockGuides, mockBusinesses, Story } from '../data/mockData';
-import { supabase } from '../lib/supabaseClient';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import {
+  ArrowRight,
+  Users,
+  BookOpen,
+  Briefcase,
+  TrendingUp,
+} from "lucide-react";
+import { Hero } from "../components/Common/Hero";
+import { StoryCard } from "../components/Stories/StoryCard";
+import { mockGuides, mockBusinesses, Story } from "../data/mockData";
+import { supabase } from "../lib/supabaseClient";
+import { Showcase } from "./Showcase";
+import "../styles/cards.css";
 
 export function Home() {
   const [featuredStories, setFeaturedStories] = useState<Story[]>([]);
@@ -12,14 +20,14 @@ export function Home() {
   useEffect(() => {
     const fetchFeaturedStories = async () => {
       const { data, error } = await supabase
-        .from('stories')
-        .select('*')
-        .eq('published', true)
-        .order('created_at', { ascending: false })
+        .from("stories")
+        .select("*")
+        .eq("published", true)
+        .order("created_at", { ascending: false })
         .limit(3);
 
       if (error) {
-        console.error('Error fetching featured stories:', error);
+        console.error("Error fetching featured stories:", error);
       } else {
         setFeaturedStories(data as Story[]);
       }
@@ -34,28 +42,36 @@ export function Home() {
   const features = [
     {
       icon: Users,
-      title: 'Connect & Network',
-      description: 'Join a supportive community of women entrepreneurs, mentors, and professionals.',
-      link: '/community'
+      title: "Connect & Network",
+      description:
+        "Join a supportive community of women entrepreneurs, mentors, and professionals.",
+      link: "/community",
+      color: "#FF6B6B", // coral pink
     },
     {
       icon: BookOpen,
-      title: 'Learn & Grow',
-      description: 'Access financial literacy guides and legal resources to empower your journey.',
-      link: '/guides'
+      title: "Learn & Grow",
+      description:
+        "Access financial literacy guides and legal resources to empower your journey.",
+      link: "/guides",
+      color: "#4ECDC4", // turquoise
     },
     {
       icon: Briefcase,
-      title: 'Showcase & Discover',
-      description: 'Promote your business and discover amazing products from fellow entrepreneurs.',
-      link: '/showcase'
+      title: "Showcase & Discover",
+      description:
+        "Promote your business and discover amazing products from fellow entrepreneurs.",
+      link: "/showcase",
+      color: "#a70eaaf9", // purple
     },
     {
       icon: TrendingUp,
-      title: 'Share Your Story',
-      description: 'Inspire others by sharing your entrepreneurial journey and experiences.',
-      link: '/stories/submit'
-    }
+      title: "Share Your Story",
+      description:
+        "Inspire others by sharing your entrepreneurial journey and experiences.",
+      link: "/stories/submit",
+      color: "#FFB347", // pastel orange
+    },
   ];
 
   return (
@@ -89,29 +105,43 @@ export function Home() {
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gradient">
               Everything You Need to Succeed
             </h2>
-            <p className="text-xl max-w-2xl mx-auto" style={{ color: 'var(--text-secondary)' }}>
-              From inspiring stories to practical resources, we're here to support your journey.
+            <p
+              className="text-xl max-w-2xl mx-auto"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              From inspiring stories to practical resources, we're here to
+              support your journey.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <Link
                 key={index}
                 to={feature.link}
-                className="card p-6 text-center group slide-up"
+                className="gradient-card slide-up"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 group-hover:scale-110 transition-transform duration-200"
-                     style={{ backgroundColor: 'var(--primary)' }}>
-                  <feature.icon className="h-8 w-8" style={{ color: 'var(--text-primary)' }} />
+                <div className="gradient-card-inner p-6 text-center">
+                  <div
+                    className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 group-hover:scale-110 transition-transform duration-200"
+                    style={{ backgroundColor: feature.color }}
+                  >
+                    <feature.icon className="h-8 w-8 text-white" />
+                  </div>
+                  <h3
+                    className="text-xl font-semibold mb-3"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    {feature.title}
+                  </h3>
+                  <p
+                    className="text-sm"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    {feature.description}
+                  </p>
                 </div>
-                <h3 className="text-xl font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
-                  {feature.title}
-                </h3>
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  {feature.description}
-                </p>
               </Link>
             ))}
           </div>
@@ -119,23 +149,28 @@ export function Home() {
       </section>
 
       {/* Featured Stories */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8"
-               style={{ backgroundColor: 'var(--bg-secondary)' }}>
+      <section
+        className="py-16 px-4 sm:px-6 lg:px-8"
+        style={{ backgroundColor: "var(--bg-secondary)" }}
+      >
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            <h2
+              className="text-3xl font-bold"
+              style={{ color: "var(--text-primary)" }}
+            >
               Featured Stories
             </h2>
             <Link
               to="/stories"
               className="inline-flex items-center space-x-2 text-lg font-medium transition-colors"
-              style={{ color: 'var(--primary)' }}
+              style={{ color: "var(--primary)" }}
             >
               <span>View All</span>
               <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredStories.map((story) => (
               <StoryCard key={story.id} story={story} />
@@ -148,19 +183,22 @@ export function Home() {
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
-              Financial & Legal Resources
+            <h2
+              className="text-3xl font-bold"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Essential Guides
             </h2>
             <Link
               to="/guides"
               className="inline-flex items-center space-x-2 text-lg font-medium transition-colors"
-              style={{ color: 'var(--primary)' }}
+              style={{ color: "var(--primary)" }}
             >
               <span>View All</span>
               <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredGuides.map((guide) => (
               <div key={guide.id} className="card overflow-hidden">
@@ -172,21 +210,32 @@ export function Home() {
                 />
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="px-3 py-1 text-xs rounded-full"
-                          style={{ 
-                            backgroundColor: 'var(--secondary)',
-                            color: 'var(--text-primary)'
-                          }}>
+                    <span
+                      className="px-3 py-1 text-xs rounded-full"
+                      style={{
+                        backgroundColor: "var(--secondary)",
+                        color: "var(--text-primary)",
+                      }}
+                    >
                       {guide.category}
                     </span>
-                    <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                    <span
+                      className="text-sm"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
                       {guide.readTime} min read
                     </span>
                   </div>
-                  <h3 className="text-xl font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
+                  <h3
+                    className="text-xl font-semibold mb-3"
+                    style={{ color: "var(--text-primary)" }}
+                  >
                     {guide.title}
                   </h3>
-                  <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                  <p
+                    className="text-sm mb-4"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
                     {guide.excerpt}
                   </p>
                   <Link
@@ -203,23 +252,28 @@ export function Home() {
       </section>
 
       {/* Featured Businesses */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8"
-               style={{ backgroundColor: 'var(--bg-secondary)' }}>
+      <section
+        className="py-16 px-4 sm:px-6 lg:px-8"
+        style={{ backgroundColor: "var(--bg-secondary)" }}
+      >
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            <h2
+              className="text-3xl font-bold"
+              style={{ color: "var(--text-primary)" }}
+            >
               Featured Businesses
             </h2>
             <Link
               to="/showcase"
               className="inline-flex items-center space-x-2 text-lg font-medium transition-colors"
-              style={{ color: 'var(--primary)' }}
+              style={{ color: "var(--primary)" }}
             >
               <span>View All</span>
               <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredBusinesses.map((business) => (
               <div key={business.id} className="card p-6 text-center">
@@ -229,25 +283,39 @@ export function Home() {
                   className="w-20 h-20 object-cover rounded-full mx-auto mb-4"
                   loading="lazy"
                 />
-                <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                <h3
+                  className="text-xl font-semibold mb-2"
+                  style={{ color: "var(--text-primary)" }}
+                >
                   {business.name}
                 </h3>
-                <p className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
+                <p
+                  className="text-sm mb-2"
+                  style={{ color: "var(--text-secondary)" }}
+                >
                   by {business.owner}
                 </p>
-                <span className="px-3 py-1 text-xs rounded-full mb-3 inline-block"
-                      style={{ 
-                        backgroundColor: 'var(--tertiary)',
-                        color: 'var(--text-primary)'
-                      }}>
+                <span
+                  className="px-3 py-1 text-xs rounded-full mb-3 inline-block"
+                  style={{
+                    backgroundColor: "var(--tertiary)",
+                    color: "var(--text-primary)",
+                  }}
+                >
                   {business.category}
                 </span>
-                <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                <p
+                  className="text-sm mb-4"
+                  style={{ color: "var(--text-secondary)" }}
+                >
                   {business.description}
                 </p>
-                <button className="btn-primary px-4 py-2 text-sm font-medium rounded-lg w-full">
+                <Link
+                  to={`/showcase/${business.id}`}
+                  className="btn-primary px-4 py-2 text-sm font-medium rounded-lg w-full"
+                >
                   Learn More
-                </button>
+                </Link>
               </div>
             ))}
           </div>
@@ -257,11 +325,18 @@ export function Home() {
       {/* CTA Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 text-center">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+          <h2
+            className="text-3xl md:text-4xl font-bold mb-4"
+            style={{ color: "var(--text-primary)" }}
+          >
             Ready to Share Your Story?
           </h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto" style={{ color: 'var(--text-secondary)' }}>
-            Your journey can inspire and empower other women. Join our community and make a difference.
+          <p
+            className="text-xl mb-8 max-w-2xl mx-auto"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            Your journey can inspire and empower other women. Join our community
+            and make a difference.
           </p>
           <Link
             to="/stories/submit"
