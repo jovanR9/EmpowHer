@@ -4,8 +4,10 @@ import { Hero } from '../components/Common/Hero';
 import { SearchBar } from '../components/Common/SearchBar';
 import { Modal } from '../components/Common/Modal';
 import { BusinessForm } from '../components/Showcase/businessForm';
+import { ProductForm } from '../components/Showcase/ProductForm';
 import { supabase } from '../lib/supabaseClient'; // Import supabase
-import { mockProducts, Business, Product } from '../data/mockData'; // Keep mockProducts for now
+import { Business } from '../data/mockData'; // Keep mockProducts for now
+import { Product } from '../types/Product'; // Define a new Product type based on Supabase schema
 
 export function Showcase() {
   const [activeTab, setActiveTab] = useState<"businesses" | "products">(
@@ -16,6 +18,8 @@ export function Showcase() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [showBusinessForm, setShowBusinessForm] = useState(false);
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [showBusinessProductsInModal, setShowBusinessProductsInModal] = useState(false);
 
   // State for fetched businesses
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -45,7 +49,7 @@ export function Showcase() {
           owner: b.owner || 'Unknown',
           description: b.description || '',
           category: b.category || 'General',
-          logo: b.logo || 'https://via.placeholder.com/150/CCCCCC/000000?text=No+Logo',
+          logo: b.logo || '/images/placeholder-business.svg',
           contact: b.contact || '',
         }));
         setBusinesses(validBusinesses);
@@ -63,6 +67,105 @@ export function Showcase() {
     fetchBusinesses();
   }, []);
 
+  // State for fetched products
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [errorProducts, setErrorProducts] = useState<string | null>(null);
+
+  // State for products of the selected business
+  const [businessProducts, setBusinessProducts] = useState<Product[]>([]);
+  const [loadingBusinessProducts, setLoadingBusinessProducts] = useState(false);
+  const [errorBusinessProducts, setErrorBusinessProducts] = useState<string | null>(null);
+
+  // Fetch products from Supabase
+  const fetchProducts = async () => {
+    try {
+      setLoadingProducts(true);
+      setErrorProducts(null);
+
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, businesses(name)')
+        .order('name');
+
+      if (error) {
+        console.error('Error fetching products:', error);
+        setErrorProducts('Failed to load products from database');
+        setProducts([]);
+      } else {
+        const validProducts: Product[] = (data || []).map((p: any) => ({
+          id: p.id,
+          created_at: p.created_at,
+          name: p.name || 'Untitled Product',
+          description: p.description || '',
+          image_url: p.image_url || '/images/placeholder-product.svg',
+          price: p.price || null,
+          category: p.category || 'General',
+          businesses: p.businesses || null, // Directly assign the nested businesses object
+        }));
+        setProducts(validProducts);
+      }
+    } catch (err) {
+      console.error('Unexpected error fetching products:', err);
+      setErrorProducts('An unexpected error occurred');
+      setProducts([]);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'products') {
+      fetchProducts();
+    }
+  }, [activeTab]);
+
+  // Fetch products for a specific business
+  const fetchBusinessProducts = async (businessId: string) => {
+    try {
+      setLoadingBusinessProducts(true);
+      setErrorBusinessProducts(null);
+
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, businesses(name)')
+        .eq('business_id', businessId)
+        .order('name');
+
+      if (error) {
+        console.error('Error fetching business products:', error);
+        setErrorBusinessProducts('Failed to load products for this business');
+        setBusinessProducts([]);
+      } else {
+        const validProducts: Product[] = (data || []).map((p: any) => ({
+          id: p.id,
+          created_at: p.created_at,
+          name: p.name || 'Untitled Product',
+          description: p.description || '',
+          image_url: p.image_url || '/images/placeholder-product.svg',
+          price: p.price || null,
+          category: p.category || 'General',
+          businesses: p.businesses || null,
+        }));
+        setBusinessProducts(validProducts);
+      }
+    } catch (err) {
+      console.error('Unexpected error fetching business products:', err);
+      setErrorBusinessProducts('An unexpected error occurred');
+      setBusinessProducts([]);
+    } finally {
+      setLoadingBusinessProducts(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedBusiness) {
+      fetchBusinessProducts(selectedBusiness.id);
+    } else {
+      setBusinessProducts([]); // Clear products when no business is selected
+    }
+  }, [selectedBusiness]);
+
   // Get unique categories (now based on fetched businesses)
   const businessCategories = useMemo(() => {
     const categorySet = new Set<string>();
@@ -76,9 +179,13 @@ export function Showcase() {
 
   const productCategories = useMemo(() => {
     const categorySet = new Set<string>();
-    mockProducts.forEach((product) => categorySet.add(product.category));
+    products.forEach((product) => {
+      if (product.category) {
+        categorySet.add(product.category);
+      }
+    });
     return Array.from(categorySet).sort();
-  }, []);
+  }, [products]);
 
   // Filter businesses (now based on fetched businesses)
   const filteredBusinesses = useMemo(() => {
@@ -95,16 +202,15 @@ export function Showcase() {
 
   // Filter products
   const filteredProducts = useMemo(() => {
-    return mockProducts.filter((product) => {
+    return products.filter((product) => {
       const matchesSearch =
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.seller.toLowerCase().includes(searchTerm.toLowerCase());
+        (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesCategory =
         !selectedCategory || product.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [searchTerm, selectedCategory]);
+  }, [products, searchTerm, selectedCategory]);
 
   // Handle successful business form submission
   const handleBusinessFormSuccess = () => {
@@ -115,6 +221,17 @@ export function Showcase() {
   // Handle business form cancellation
   const handleBusinessFormCancel = () => {
     setShowBusinessForm(false);
+  };
+
+  // Handle successful product form submission
+  const handleProductFormSuccess = () => {
+    setShowProductForm(false);
+    fetchProducts(); // Refresh the products list
+  };
+
+  // Handle product form cancellation
+  const handleProductFormCancel = () => {
+    setShowProductForm(false);
   };
 
   // Determine contact link based on contact type
@@ -271,7 +388,7 @@ export function Showcase() {
                             loading="lazy"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
-                              target.src = 'https://via.placeholder.com/150/CCCCCC/000000?text=No+Logo';
+                              target.src = '/images/placeholder-business.svg';
                             }}
                           />
                           <h3 className="text-xl font-semibold mb-1 break-words" style={{ color: 'var(--text-primary)' }}>
@@ -359,7 +476,9 @@ export function Showcase() {
                   {filteredProducts.length}{" "}
                   {filteredProducts.length === 1 ? "product" : "products"} found
                 </p>
-                <button className="btn-primary inline-flex items-center space-x-2 px-4 py-2 font-medium rounded-lg hover:transform hover:-translate-y-1 transition-all duration-200">
+                <button 
+                  onClick={() => setShowProductForm(true)}
+                  className="btn-primary inline-flex items-center space-x-2 px-4 py-2 font-medium rounded-lg hover:transform hover:-translate-y-1 transition-all duration-200">
                   <Plus className="h-4 w-4" />
                   <span>Add Your Product</span>
                 </button>
@@ -371,10 +490,14 @@ export function Showcase() {
                        onClick={() => setSelectedProduct(product)}>
                     <div className="relative">
                       <img
-                        src={product.image}
+                        src={product.image_url || '/images/placeholder-product.svg'}
                         alt={product.name}
                         className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/images/placeholder-product.svg';
+                        }}
                       />
                       <div className="absolute top-2 right-2">
                         <span
@@ -401,10 +524,10 @@ export function Showcase() {
                           className="font-bold"
                           style={{ color: "var(--primary)" }}
                         >
-                          {product.price}
+                          {product.price !== null ? `${product.price.toFixed(2)}` : 'N/A'}
                         </span>
                         <span className="text-xs break-words" style={{ color: 'var(--text-secondary)' }}>
-                          by {product.seller}
+                          by {product.businesses ? product.businesses.name : 'Unknown Seller'}
                         </span>
                       </div>
                     </div>
@@ -467,7 +590,7 @@ export function Showcase() {
                 loading="lazy"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  target.src = 'https://via.placeholder.com/150/CCCCCC/000000?text=No+Logo';
+                  target.src = '/images/placeholder-business.svg';
                 }}
               />
               <h2 className="text-2xl font-bold mb-2 break-words" style={{ color: 'var(--text-primary)' }}>
@@ -513,15 +636,61 @@ export function Showcase() {
                   <span>Contact Business</span>
                 </a>
               )}
-              <button className="flex-1 py-3 font-medium rounded-lg border-2 transition-all duration-200 hover:bg-opacity-10 hover:transform hover:-translate-y-0.5"
+              <button 
+                      onClick={() => setShowBusinessProductsInModal(prev => !prev)}
+                      className="flex-1 py-3 font-medium rounded-lg border-2 transition-all duration-200 hover:bg-opacity-10 hover:transform hover:-translate-y-0.5"
                       style={{ 
                         borderColor: 'var(--primary)',
                         color: 'var(--primary)'
                       }}>
-                View Products
+                {showBusinessProductsInModal ? 'Hide Products' : 'View Products'}
               </button>
             </div>
-          </div>
+
+            {showBusinessProductsInModal && (
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
+                  Products by {selectedBusiness.name}
+                </h3>
+                {loadingBusinessProducts ? (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-2" 
+                         style={{ borderColor: 'var(--primary)' }}></div>
+                    <p style={{ color: 'var(--text-secondary)' }}>Loading products...</p>
+                  </div>
+                ) : errorBusinessProducts ? (
+                  <p className="text-red-500 text-center">Error: {errorBusinessProducts}</p>
+                ) : businessProducts.length === 0 ? (
+                  <p className="text-center text-sm" style={{ color: 'var(--text-secondary)' }}>No products found for this business.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {businessProducts.map((product) => (
+                      <div key={product.id} className="card p-4 flex items-center space-x-4">
+                        <img
+                          src={product.image_url || '/images/placeholder-product.svg'}
+                          alt={product.name}
+                          className="w-16 h-16 object-cover rounded-lg"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/images/placeholder-product.svg';
+                          }}
+                        />
+                        <div>
+                          <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{product.name}</h4>
+                          {product.price !== null && (
+                            <p className="text-sm font-bold" style={{ color: 'var(--primary)' }}>${product.price.toFixed(2)}</p>
+                          )}
+                          {product.category && (
+                            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{product.category}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div> {/* Closing tag for <div className="space-y-6"> */}
         </Modal>
       )}
 
@@ -535,10 +704,14 @@ export function Showcase() {
         >
           <div className="space-y-6">
             <img
-              src={selectedProduct.image}
+              src={selectedProduct.image_url || '/images/placeholder-product.svg'}
               alt={selectedProduct.name}
               className="w-full h-64 object-cover rounded-lg"
               loading="lazy"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = '/images/placeholder-product.svg';
+              }}
             />
 
             <div className="flex items-center justify-between">
@@ -553,7 +726,7 @@ export function Showcase() {
                   {selectedProduct.category}
                 </span>
                 <p className="text-sm mt-2 break-words" style={{ color: 'var(--text-secondary)' }}>
-                  by {selectedProduct.seller}
+                  by {selectedProduct.businesses ? selectedProduct.businesses.name : 'Unknown Seller'}
                 </p>
               </div>
               <div className="text-right">
@@ -561,7 +734,7 @@ export function Showcase() {
                   className="text-2xl font-bold"
                   style={{ color: "var(--primary)" }}
                 >
-                  {selectedProduct.price}
+                  {selectedProduct.price !== null ? `${selectedProduct.price.toFixed(2)}` : 'N/A'}
                 </p>
               </div>
             </div>
@@ -591,6 +764,21 @@ export function Showcase() {
               </button>
             </div>
           </div>
+        </Modal>
+      )}
+
+      {/* Product Form Modal */}
+      {showProductForm && (
+        <Modal
+          isOpen={true}
+          onClose={handleProductFormCancel}
+          title="Add Your Product"
+          size="xl"
+        >
+          <ProductForm
+            onCancel={handleProductFormCancel}
+            onSuccess={handleProductFormSuccess}
+          />
         </Modal>
       )}
     </div>
