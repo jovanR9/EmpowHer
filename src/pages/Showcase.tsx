@@ -8,9 +8,11 @@ import { supabase } from '../lib/supabaseClient'; // Import supabase
 import { mockProducts, Business, Product } from '../data/mockData'; // Keep mockProducts for now
 
 export function Showcase() {
-  const [activeTab, setActiveTab] = useState<'businesses' | 'products'>('businesses');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [activeTab, setActiveTab] = useState<"businesses" | "products">(
+    "businesses"
+  );
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [showBusinessForm, setShowBusinessForm] = useState(false);
@@ -74,28 +76,32 @@ export function Showcase() {
 
   const productCategories = useMemo(() => {
     const categorySet = new Set<string>();
-    mockProducts.forEach(product => categorySet.add(product.category));
+    mockProducts.forEach((product) => categorySet.add(product.category));
     return Array.from(categorySet).sort();
   }, []);
 
   // Filter businesses (now based on fetched businesses)
   const filteredBusinesses = useMemo(() => {
-    return businesses.filter(business => {
-      const matchesSearch = business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          business.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          business.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = !selectedCategory || business.category === selectedCategory;
+    return businesses.filter((business) => {
+      const matchesSearch =
+        business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        business.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        business.description.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory =
+        !selectedCategory || business.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
   }, [businesses, searchTerm, selectedCategory]);
 
   // Filter products
   const filteredProducts = useMemo(() => {
-    return mockProducts.filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          product.seller.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = !selectedCategory || product.category === selectedCategory;
+    return mockProducts.filter((product) => {
+      const matchesSearch =
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.seller.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory =
+        !selectedCategory || product.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
   }, [searchTerm, selectedCategory]);
@@ -131,33 +137,41 @@ export function Showcase() {
       >
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
-            onClick={() => setActiveTab('businesses')}
+            onClick={() => setActiveTab("businesses")}
             className={`px-6 py-3 font-semibold rounded-lg transition-all duration-200 ${
-              activeTab === 'businesses' 
-                ? 'btn-primary' 
-                : 'border-2 hover:transform hover:-translate-y-1'
+              activeTab === "businesses"
+                ? "btn-primary"
+                : "border-2 hover:transform hover:-translate-y-1"
             }`}
-            style={activeTab === 'businesses' ? {} : { 
-              borderColor: 'var(--primary)',
-              color: 'var(--primary)',
-              backgroundColor: 'transparent'
-            }}
+            style={
+              activeTab === "businesses"
+                ? {}
+                : {
+                    borderColor: "var(--primary)",
+                    color: "var(--primary)",
+                    backgroundColor: "transparent",
+                  }
+            }
           >
             <Briefcase className="h-5 w-5 inline mr-2" />
             Business Directory
           </button>
           <button
-            onClick={() => setActiveTab('products')}
+            onClick={() => setActiveTab("products")}
             className={`px-6 py-3 font-semibold rounded-lg transition-all duration-200 ${
-              activeTab === 'products' 
-                ? 'btn-primary' 
-                : 'border-2 hover:transform hover:-translate-y-1'
+              activeTab === "products"
+                ? "btn-primary"
+                : "border-2 hover:transform hover:-translate-y-1"
             }`}
-            style={activeTab === 'products' ? {} : { 
-              borderColor: 'var(--primary)',
-              color: 'var(--primary)',
-              backgroundColor: 'transparent'
-            }}
+            style={
+              activeTab === "products"
+                ? {}
+                : {
+                    borderColor: "var(--primary)",
+                    color: "var(--primary)",
+                    backgroundColor: "transparent",
+                  }
+            }
           >
             <ShoppingBag className="h-5 w-5 inline mr-2" />
             Product Gallery
@@ -172,34 +186,50 @@ export function Showcase() {
             <SearchBar
               value={searchTerm}
               onChange={setSearchTerm}
-              placeholder={activeTab === 'businesses' ? 'Search businesses by name, owner, or description...' : 'Search products by name, description, or seller...'}
+              placeholder={
+                activeTab === "businesses"
+                  ? "Search businesses by name, owner, or description..."
+                  : "Search products by name, description, or seller..."
+              }
             />
-            
+
             <div className="flex flex-wrap gap-4">
-              <div className="relative">
+              <div
+                className="flex items-center rounded-lg px-3 cursor-pointer border w-auto"
+                style={{
+                  backgroundColor: "var(--bg-secondary)",
+                  borderColor: "var(--border-color)",
+                  color: "var(--text-primary)",
+                }}
+              >
+                {/* Icon on the left */}
+                <Filter
+                  className="h-5 w-5 mr-2 shrink-0"
+                  style={{ color: "var(--text-secondary)" }}
+                />
+
+                {/* Dropdown on the right */}
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="input-field pl-10 pr-4 py-2 rounded-lg appearance-none cursor-pointer"
-                  style={{
-                    backgroundColor: 'var(--bg-secondary)',
-                    borderColor: 'var(--border-color)',
-                    color: 'var(--text-primary)'
-                  }}
+                  className="bg-transparent focus:outline-none appearance-none w-auto py-2"
                 >
                   <option value="">All Categories</option>
-                  {(activeTab === 'businesses' ? businessCategories : productCategories).map(category => (
-                    <option key={category} value={category}>{category}</option>
+                  {(activeTab === "businesses"
+                    ? businessCategories
+                    : productCategories
+                  ).map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
                   ))}
                 </select>
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5"
-                        style={{ color: 'var(--text-secondary)' }} />
               </div>
             </div>
           </div>
 
           {/* Businesses Tab */}
-          {activeTab === 'businesses' && (
+          {activeTab === "businesses" && (
             <div>
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
@@ -319,18 +349,22 @@ export function Showcase() {
           )}
 
           {/* Products Tab */}
-          {activeTab === 'products' && (
+          {activeTab === "products" && (
             <div>
               <div className="flex items-center justify-between mb-6">
-                <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-                  {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} found
+                <p
+                  className="text-lg"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  {filteredProducts.length}{" "}
+                  {filteredProducts.length === 1 ? "product" : "products"} found
                 </p>
                 <button className="btn-primary inline-flex items-center space-x-2 px-4 py-2 font-medium rounded-lg hover:transform hover:-translate-y-1 transition-all duration-200">
                   <Plus className="h-4 w-4" />
                   <span>Add Your Product</span>
                 </button>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {filteredProducts.map((product) => (
                   <div key={product.id} className="card overflow-hidden group cursor-pointer hover:transform hover:-translate-y-1 transition-all duration-200"
@@ -345,16 +379,16 @@ export function Showcase() {
                       <div className="absolute top-2 right-2">
                         <span
                           className="px-2 py-1 text-xs rounded-full"
-                          style={{ 
-                            backgroundColor: 'var(--primary)',
-                            color: 'var(--text-primary)'
+                          style={{
+                            backgroundColor: "var(--primary)",
+                            color: "var(--text-primary)",
                           }}
                         >
                           {product.category}
                         </span>
                       </div>
                     </div>
-                    
+
                     <div className="p-4">
                       <h3 className="font-semibold mb-2 line-clamp-2 break-words" style={{ color: 'var(--text-primary)' }}>
                         {product.name}
@@ -363,7 +397,10 @@ export function Showcase() {
                         {product.description}
                       </p>
                       <div className="flex items-center justify-between">
-                        <span className="font-bold" style={{ color: 'var(--primary)' }}>
+                        <span
+                          className="font-bold"
+                          style={{ color: "var(--primary)" }}
+                        >
                           {product.price}
                         </span>
                         <span className="text-xs break-words" style={{ color: 'var(--text-secondary)' }}>
@@ -374,14 +411,20 @@ export function Showcase() {
                   </div>
                 ))}
               </div>
-              
+
               {filteredProducts.length === 0 && (
                 <div className="text-center py-12">
-                  <ShoppingBag className="h-16 w-16 mx-auto mb-4 opacity-50" style={{ color: 'var(--text-secondary)' }} />
-                  <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                  <ShoppingBag
+                    className="h-16 w-16 mx-auto mb-4 opacity-50"
+                    style={{ color: "var(--text-secondary)" }}
+                  />
+                  <h3
+                    className="text-xl font-semibold mb-2"
+                    style={{ color: "var(--text-primary)" }}
+                  >
                     No products found
                   </h3>
-                  <p style={{ color: 'var(--text-secondary)' }}>
+                  <p style={{ color: "var(--text-secondary)" }}>
                     Try adjusting your search criteria.
                   </p>
                 </div>
@@ -445,16 +488,19 @@ export function Showcase() {
                 </span>
               )}
             </div>
-            
+
             <div>
-              <h3 className="text-lg font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
+              <h3
+                className="text-lg font-semibold mb-3"
+                style={{ color: "var(--text-primary)" }}
+              >
                 About the Business
               </h3>
               <p className="text-base leading-relaxed break-words" style={{ color: 'var(--text-secondary)' }}>
                 {selectedBusiness.description || 'No description available.'}
               </p>
             </div>
-            
+
             <div className="flex space-x-4">
               {selectedBusiness.contact && (
                 <a
@@ -494,14 +540,14 @@ export function Showcase() {
               className="w-full h-64 object-cover rounded-lg"
               loading="lazy"
             />
-            
+
             <div className="flex items-center justify-between">
               <div>
                 <span
                   className="px-3 py-1 text-sm rounded-full"
-                  style={{ 
-                    backgroundColor: 'var(--primary)',
-                    color: 'var(--text-primary)'
+                  style={{
+                    backgroundColor: "var(--primary)",
+                    color: "var(--text-primary)",
                   }}
                 >
                   {selectedProduct.category}
@@ -511,21 +557,27 @@ export function Showcase() {
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold" style={{ color: 'var(--primary)' }}>
+                <p
+                  className="text-2xl font-bold"
+                  style={{ color: "var(--primary)" }}
+                >
                   {selectedProduct.price}
                 </p>
               </div>
             </div>
-            
+
             <div>
-              <h3 className="text-lg font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
+              <h3
+                className="text-lg font-semibold mb-3"
+                style={{ color: "var(--text-primary)" }}
+              >
                 Product Description
               </h3>
               <p className="text-base leading-relaxed break-words" style={{ color: 'var(--text-secondary)' }}>
                 {selectedProduct.description}
               </p>
             </div>
-            
+
             <div className="flex space-x-4">
               <button className="btn-primary flex-1 py-3 font-medium rounded-lg hover:transform hover:-translate-y-0.5 transition-all duration-200">
                 Contact Seller
