@@ -1,9 +1,21 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { BookOpen, ExternalLink, Search, Filter, Clock, DollarSign, Scale, FileText } from 'lucide-react';
 import { Hero } from '../components/Common/Hero';
 import { SearchBar } from '../components/Common/SearchBar';
 import { Modal } from '../components/Common/Modal';
-import { mockGuides, mockSchemes, Guide, Scheme } from '../data/mockData';
+import { supabase } from '../lib/supabaseClient'; // Import supabase
+import { mockSchemes, Scheme } from '../data/mockData'; // Keep mockSchemes for now
+
+// Define the Guide interface based on the provided SQL schema
+interface Guide {
+  id: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  category: string;
+  image: string;
+  read_time: number; // Changed from readTime to read_time to match SQL schema
+}
 
 export function Guides() {
   const [activeTab, setActiveTab] = useState<'guides' | 'schemes'>('guides');
@@ -11,12 +23,57 @@ export function Guides() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedGuide, setSelectedGuide] = useState<Guide | null>(null);
 
-  // Get unique categories for guides
+  // State for fetched guides
+  const [guides, setGuides] = useState<Guide[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch guides from Supabase
+  useEffect(() => {
+    const fetchGuides = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const { data, error } = await supabase
+          .from('guides')
+          .select('*');
+
+        if (error) {
+          console.error('Error fetching guides:', error);
+          setError('Failed to load guides from database');
+          setGuides([]);
+        } else {
+          // Basic validation and normalization for fetched data
+          const validGuides: Guide[] = (data || []).map(g => ({
+            id: g.id,
+            title: g.title || 'Untitled Guide',
+            excerpt: g.excerpt || '',
+            content: g.content || '',
+            category: g.category || 'General',
+            image: g.image || 'https://via.placeholder.com/400x200?text=No+Image',
+            read_time: g.read_time || 0,
+          }));
+          setGuides(validGuides);
+        }
+      } catch (err) {
+        console.error('Unexpected error fetching guides:', err);
+        setError('An unexpected error occurred');
+        setGuides([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGuides();
+  }, []);
+
+  // Get unique categories for guides (now based on fetched guides)
   const guideCategories = useMemo(() => {
     const categorySet = new Set<string>();
-    mockGuides.forEach(guide => categorySet.add(guide.category));
+    guides.forEach(guide => categorySet.add(guide.category));
     return Array.from(categorySet).sort();
-  }, []);
+  }, [guides]);
 
   // Get unique categories for schemes
   const schemeCategories = useMemo(() => {
@@ -25,16 +82,16 @@ export function Guides() {
     return Array.from(categorySet).sort();
   }, []);
 
-  // Filter guides
+  // Filter guides (now based on fetched guides)
   const filteredGuides = useMemo(() => {
-    return mockGuides.filter(guide => {
+    return guides.filter(guide => {
       const matchesSearch = guide.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           guide.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           guide.content.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = !selectedCategory || guide.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [searchTerm, selectedCategory]);
+  }, [guides, searchTerm, selectedCategory]);
 
   // Filter schemes
   const filteredSchemes = useMemo(() => {
@@ -72,6 +129,24 @@ export function Guides() {
         return 'var(--primary)';
     }
   };
+
+  if (loading) {
+    return (
+      <div>
+        <Hero
+          title="Financial & Legal Literacy"
+          subtitle="Access essential resources, guides, and government schemes to support your entrepreneurial journey."
+        />
+        <section className="py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto text-center">
+            <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
+              Loading guides...
+            </p>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -148,12 +223,24 @@ export function Guides() {
             </div>
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 rounded-lg" 
+                 style={{ 
+                   backgroundColor: 'var(--error-bg, #fee2e2)', 
+                   color: 'var(--error-text, #dc2626)',
+                   border: '1px solid var(--error-border, #fecaca)'
+                 }}>
+              {error}
+            </div>
+          )}
+
           {/* Guides Tab */}
           {activeTab === 'guides' && (
             <div>
               <div className="mb-6">
                 <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-                  {filteredGuides.length} {filteredGuides.length === 1 ? 'guide' : 'guides'} available
+                  Found {filteredGuides.length} {filteredGuides.length === 1 ? 'guide' : 'guides'}
                 </p>
               </div>
               
@@ -185,7 +272,7 @@ export function Guides() {
                           </div>
                           <div className="flex items-center space-x-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
                             <Clock className="h-4 w-4" />
-                            <span>{guide.readTime} min</span>
+                            <span>{guide.read_time} min</span>
                           </div>
                         </div>
                         
@@ -330,7 +417,7 @@ export function Guides() {
               </span>
               <div className="flex items-center space-x-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
                 <Clock className="h-4 w-4" />
-                <span>{selectedGuide.readTime} min read</span>
+                <span>{selectedGuide.read_time} min read</span>
               </div>
             </div>
             
@@ -339,7 +426,7 @@ export function Guides() {
                 {selectedGuide.excerpt}
               </p>
               
-              <div className="text-base leading-relaxed whitespace-pre-wrap">
+              <div className="text-base leading-relaxed whitespace-pre-wrap" style={{ wordBreak: 'break-all' }}>
                 {selectedGuide.content}
               </div>
             </div>
