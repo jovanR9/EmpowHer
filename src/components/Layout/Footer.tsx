@@ -1,5 +1,6 @@
 import React from 'react';
 import { Heart, Mail, MapPin, Phone } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 
 export function Footer() {
   return (
@@ -13,7 +14,15 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <Heart className="h-8 w-8" style={{ color: 'var(--primary)' }} />
+              
+          <Link to="/" className="flex items-center space-x-2">
+            <img 
+              src="/images/empowher_logo.svg"   // 👈 file path inside public/image
+              alt="EmpowHer Logo" 
+              className="h-8 w-8 object-contain"
+            />
+
+          </Link>
               <span className="text-2xl font-bold text-gradient">EmpowHer</span>
             </div>
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
