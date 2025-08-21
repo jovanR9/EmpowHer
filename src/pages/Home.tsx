@@ -12,10 +12,25 @@ import { StoryCard } from "../components/Stories/StoryCard";
 import { mockGuides, mockBusinesses, Story } from "../data/mockData";
 import { supabase } from "../lib/supabaseClient";
 import { Showcase } from "./Showcase";
+import { Modal } from "../components/Common/Modal";
 import "../styles/cards.css";
 
 export function Home() {
   const [featuredStories, setFeaturedStories] = useState<Story[]>([]);
+  const [selectedGuide, setSelectedGuide] = useState<
+    (typeof mockGuides)[0] | null
+  >(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openGuide = (guide: (typeof mockGuides)[0]) => {
+    setSelectedGuide(guide);
+    setIsModalOpen(true);
+  };
+
+  const closeGuide = () => {
+    setIsModalOpen(false);
+    setSelectedGuide(null);
+  };
 
   useEffect(() => {
     const fetchFeaturedStories = async () => {
@@ -178,7 +193,7 @@ export function Home() {
         </div>
       </section>
       {/* Featured Guides */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
+      {/* <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h2
@@ -247,8 +262,120 @@ export function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
       {/* Featured Businesses */}
+
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <h2
+              className="text-3xl font-bold"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Essential Guides
+            </h2>
+            <Link
+              to="/guides"
+              className="inline-flex items-center space-x-2 text-lg font-medium transition-colors"
+              style={{ color: "var(--primary)" }}
+            >
+              <span>View All</span>
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {featuredGuides.map((guide) => (
+              <div key={guide.id} className="card overflow-hidden">
+                <img
+                  src={guide.image}
+                  alt={guide.title}
+                  className="w-full h-48 object-cover"
+                  loading="lazy"
+                />
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span
+                      className="px-3 py-1 text-xs rounded-full"
+                      style={{
+                        backgroundColor: "var(--secondary)",
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      {guide.category}
+                    </span>
+                    <span
+                      className="text-sm"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      {guide.readTime} min read
+                    </span>
+                  </div>
+                  <h3
+                    className="text-xl font-semibold mb-3"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    {guide.title}
+                  </h3>
+                  <p
+                    className="text-sm mb-4"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    {guide.excerpt}
+                  </p>
+                  {/* Modal Button */}
+                  <button
+                    onClick={() => openGuide(guide)}
+                    className="btn-primary inline-block px-4 py-2 text-sm font-medium rounded-lg"
+                  >
+                    Read Guide
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Modal */}
+          {selectedGuide && (
+            <Modal
+              isOpen={isModalOpen}
+              onClose={closeGuide}
+              title={selectedGuide.title}
+              size="lg"
+            >
+              <img
+                src={selectedGuide.image}
+                alt={selectedGuide.title}
+                className="w-full h-64 object-cover rounded-lg mb-4"
+              />
+              <div className="flex items-center justify-between mb-4">
+                <span
+                  className="px-3 py-1 text-xs rounded-full"
+                  style={{
+                    backgroundColor: "var(--secondary)",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  {selectedGuide.category}
+                </span>
+                <span
+                  className="text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  {selectedGuide.readTime} min read
+                </span>
+              </div>
+              <p
+                className="text-base"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                {selectedGuide.content ?? selectedGuide.excerpt}
+              </p>
+            </Modal>
+          )}
+        </div>
+      </section>
+
       <section
         className="py-16 px-4 sm:px-6 lg:px-8"
         style={{ backgroundColor: "var(--bg-secondary)" }}
