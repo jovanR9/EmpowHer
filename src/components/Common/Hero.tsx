@@ -9,7 +9,7 @@ interface HeroProps {
 
 export function Hero({ title, subtitle, children, className = '' }: HeroProps) {
   return (
-    <section className={`hero-section relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden ${className}`}>
+    <section className={`hero-section relative min-h-screen -mt-20 px-4 sm:px-6 lg:px-8 overflow-hidden ${className}`}>
       {/* Animated Background */}
       <div className="hero-background absolute inset-0">
         {/* Gradient Background */}
@@ -35,7 +35,8 @@ export function Hero({ title, subtitle, children, className = '' }: HeroProps) {
         </div>
       </div>
       
-      <div className="relative max-w-4xl mx-auto text-center fade-in z-10">
+      {/* Add padding top to content to account for navbar */}
+      <div className="relative max-w-4xl mx-auto text-center fade-in z-10 pt-32">
         <h1 className="text-4xl md:text-6xl font-bold mb-6 text-gradient">
           {title}
         </h1>

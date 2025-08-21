@@ -88,7 +88,7 @@ export function StorySubmit() {
       <div className="min-h-screen py-12">
         <StoryForm
           story={existingStory}
-          onSubmit={handleSubmit}
+          onSuccess={handleSubmit}
           onCancel={handleCancel}
         />
       </div>
