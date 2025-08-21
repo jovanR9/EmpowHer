@@ -13,6 +13,7 @@ import { SearchBar } from "../components/Common/SearchBar";
 import { Modal } from "../components/Common/Modal";
 import { mockForumTopics, ForumTopic } from "../data/mockData"; // Keep mockForumTopics
 import { supabase } from "../lib/supabaseClient"; // Import supabase
+import { DiscussionForm } from "../components/Discussions/DiscussionForm";
 
 // Define the Profile interface as provided earlier
 interface Profile {
@@ -56,6 +57,9 @@ export function Community() {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedTopic, setSelectedTopic] = useState<Discussion | null>(null);
   const [newPost, setNewPost] = useState("");
+
+  // State for the new discussion modal
+  const [isDiscussionModalOpen, setIsDiscussionModalOpen] = useState(false);
 
   // State for fetched profiles
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -369,6 +373,15 @@ export function Community() {
             <MessageCircle className="h-5 w-5 inline mr-2" />
             Discussion Forums
           </button>
+          {activeTab === "forums" && (
+            <button
+              onClick={() => setIsDiscussionModalOpen(true)}
+              className={`px-6 py-3 font-semibold rounded-lg transition-all duration-200 hover:transform hover:-translate-y-1 !text-[#3A3440] hover:!text-white btn-primary`}
+              // Removed inline style to use btn-primary's default background
+            >
+              Start a Discussion
+            </button>
+          )}
         </div>
       </Hero>
 
@@ -790,6 +803,25 @@ export function Community() {
               </form>
             </div>
           </div>
+        </Modal>
+      )}
+
+      {/* New Discussion Modal */}
+      {isDiscussionModalOpen && (
+        <Modal
+          isOpen={true}
+          onClose={() => setIsDiscussionModalOpen(false)}
+          title="Start a New Discussion"
+          size="lg"
+        >
+          <DiscussionForm
+            onCancel={() => setIsDiscussionModalOpen(false)}
+            onSuccess={() => {
+              setIsDiscussionModalOpen(false);
+              // Optionally, refresh discussions list after successful post
+              // For now, relies on the activeTab === "forums" useEffect to re-fetch
+            }}
+          />
         </Modal>
       )}
     </div>

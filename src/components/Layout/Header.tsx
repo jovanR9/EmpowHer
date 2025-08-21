@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Sun, Moon, Heart } from 'lucide-react';
+import { Menu, X, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export function Header() {
@@ -32,7 +32,11 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <Heart className="h-8 w-8" style={{ color: 'var(--primary)' }} />
+            <img 
+              src="/images/empowher_logo.svg"   // 👈 file path inside public/image
+              alt="EmpowHer Logo" 
+              className="h-8 w-8 object-contain"
+            />
             <span className="text-2xl font-bold text-gradient">EmpowHer</span>
           </Link>
 

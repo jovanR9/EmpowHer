@@ -1,48 +1,49 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   /* Light theme colors */
-  --primary: #D8BFD8;
-  --secondary: #A3C1AD;
-  --tertiary: #FFC0CB;
-  --neutral-dark: #F7F4F9;
-  --neutral-light: #2C2630;
-  --text-primary: #3A3440;
-  --text-secondary: #7F7983;
-  --bg-primary: #F7F4F9;
-  --bg-secondary: #FFFFFF;
-  --bg-card: #FFFFFF;
-  --border-color: #E5E7EB;
+  --primary: #d8bfd8;
+  --secondary: #a3c1ad;
+  --tertiary: #ffc0cb;
+  --neutral-dark: #f7f4f9;
+  --neutral-light: #2c2630;
+  --text-primary: #3a3440;
+  --text-secondary: #7f7983;
+  --bg-primary: #f7f4f9;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --border-color: #e5e7eb;
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 }
 
 [data-theme="dark"] {
   /* Dark theme colors */
-  --primary: #D8BFD8;
-  --secondary: #A3C1AD;
-  --tertiary: #FFC0CB;
-  --neutral-dark: #2C2630;
-  --neutral-light: #F7F4F9;
-  --text-primary: #F3F4F6;
-  --text-secondary: #D1D5DB;
-  --bg-primary: #1F1B24;
-  --bg-secondary: #2C2630;
-  --bg-card: #3A3440;
-  --border-color: #4B5563;
+  --primary: #d8bfd8;
+  --secondary: #a3c1ad;
+  --tertiary: #ffc0cb;
+  --neutral-dark: #2c2630;
+  --neutral-light: #f7f4f9;
+  --text-primary: #f3f4f6;
+  --text-secondary: #d1d5db;
+  --bg-primary: #1f1b24;
+  --bg-secondary: #2c2630;
+  --bg-card: #3a3440;
+  --border-color: #4b5563;
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3);
 }
 
 * {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
@@ -76,8 +77,12 @@ body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
@@ -162,13 +167,20 @@ body {
 
 /* Animated Gradient Background */
 .hero-gradient {
-  background: linear-gradient(135deg, #FF69B4 0%, #FFB6C1 25%, #98FB98 75%, #50C878 100%);
+  background: linear-gradient(
+    135deg,
+    #ff69b4 0%,
+    #ffb6c1 25%,
+    #98fb98 75%,
+    #50c878 100%
+  );
   background-size: 400% 400%;
   animation: gradientShift 8s ease-in-out infinite;
 }
 
 @keyframes gradientShift {
-  0%, 100% {
+  0%,
+  100% {
     background-position: 0% 50%;
   }
   50% {
@@ -184,7 +196,7 @@ body {
 }
 
 .hero-section .text-gradient {
-  background: linear-gradient(135deg, #FFFFFF 0%, #F0F8FF 50%, #FFFFFF 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 50%, #ffffff 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -254,7 +266,8 @@ body {
 
 /* Floating Animations */
 @keyframes float1 {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px) translateX(0px) rotate(0deg);
   }
   33% {
@@ -266,7 +279,8 @@ body {
 }
 
 @keyframes float2 {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px) translateX(0px) rotate(0deg);
   }
   50% {
@@ -275,7 +289,8 @@ body {
 }
 
 @keyframes float3 {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px) translateX(0px) rotate(0deg);
   }
   25% {
@@ -287,7 +302,8 @@ body {
 }
 
 @keyframes float4 {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px) translateX(0px) rotate(0deg);
   }
   40% {
@@ -299,7 +315,8 @@ body {
 }
 
 @keyframes float5 {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px) translateX(0px) rotate(0deg);
   }
   60% {
@@ -308,7 +325,8 @@ body {
 }
 
 @keyframes float6 {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px) translateX(0px) rotate(0deg);
   }
   30% {
@@ -347,7 +365,8 @@ body {
 }
 
 @keyframes waveMove {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
   50% {
@@ -356,20 +375,29 @@ body {
 }
 
 @keyframes wave1 {
-  0%, 100% {
-    d: path("M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z");
+  0%,
+  100% {
+    d: path(
+      "M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+    );
   }
 }
 
 @keyframes wave2 {
-  0%, 100% {
-    d: path("M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z");
+  0%,
+  100% {
+    d: path(
+      "M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
+    );
   }
 }
 
 @keyframes wave3 {
-  0%, 100% {
-    d: path("M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z");
+  0%,
+  100% {
+    d: path(
+      "M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"
+    );
   }
 }
 
@@ -379,18 +407,36 @@ body {
     min-height: 70vh;
     padding: 60px 16px;
   }
-  
+
   .floating-shape {
     transform: scale(0.7);
   }
-  
-  .shape-1 { width: 56px; height: 56px; }
-  .shape-2 { width: 84px; height: 84px; }
-  .shape-3 { width: 42px; height: 42px; }
-  .shape-4 { width: 70px; height: 70px; }
-  .shape-5 { width: 28px; height: 28px; }
-  .shape-6 { width: 63px; height: 63px; }
-  
+
+  .shape-1 {
+    width: 56px;
+    height: 56px;
+  }
+  .shape-2 {
+    width: 84px;
+    height: 84px;
+  }
+  .shape-3 {
+    width: 42px;
+    height: 42px;
+  }
+  .shape-4 {
+    width: 70px;
+    height: 70px;
+  }
+  .shape-5 {
+    width: 28px;
+    height: 28px;
+  }
+  .shape-6 {
+    width: 63px;
+    height: 63px;
+  }
+
   .hero-waves {
     height: 80px;
   }
@@ -401,11 +447,11 @@ body {
     min-height: 60vh;
     padding: 40px 16px;
   }
-  
+
   .floating-shape {
     transform: scale(0.5);
   }
-  
+
   .hero-waves {
     height: 60px;
   }
@@ -421,12 +467,12 @@ body {
   .wave-path-3 {
     animation: none;
   }
-  
+
   .hero-gradient {
-    background: linear-gradient(135deg, #FF69B4 0%, #50C878 100%);
+    background: linear-gradient(135deg, #ff69b4 0%, #50c878 100%);
     background-size: 100% 100%;
   }
-  
+
   .floating-shape {
     opacity: 0.3;
   }
@@ -435,14 +481,14 @@ body {
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .hero-gradient {
-    background: linear-gradient(135deg, #FF1493 0%, #228B22 100%);
+    background: linear-gradient(135deg, #ff1493 0%, #228b22 100%);
   }
-  
+
   .hero-subtitle {
-    color: #FFFFFF;
+    color: #ffffff;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
   }
-  
+
   .floating-shape {
     background: rgba(255, 255, 255, 0.3);
     border: 2px solid rgba(255, 255, 255, 0.5);
@@ -451,7 +497,13 @@ body {
 
 /* Dark mode adjustments */
 [data-theme="dark"] .hero-gradient {
-  background: linear-gradient(135deg, #C71585 0%, #FFB6C1 25%, #90EE90 75%, #32CD32 100%);
+  background: linear-gradient(
+    135deg,
+    #c71585 0%,
+    #ffb6c1 25%,
+    #90ee90 75%,
+    #32cd32 100%
+  );
 }
 
 [data-theme="dark"] .hero-subtitle {
@@ -494,4 +546,3 @@ body {
   background-color: rgba(255, 255, 255, 0.2);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
-
