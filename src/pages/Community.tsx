@@ -170,7 +170,7 @@ export function Community() {
               content,
               created_at,
               author_id,
-              profiles (name)
+              author_name
             `)
             .eq('topic_id', selectedTopic.id)
             .order('created_at', { ascending: true });
@@ -184,7 +184,7 @@ export function Community() {
               id: r.id,
               content: r.content,
               author_id: r.author_id,
-              author_name: r.profiles ? r.profiles.name : 'Anonymous', // Default to Anonymous
+              author_name: r.author_name || 'Anonymous', // Use r.author_name directly
               created_at: new Date(r.created_at).toLocaleString(),
               topic_id: selectedTopic.id,
             }));
