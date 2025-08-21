@@ -27,11 +27,16 @@ export function Footer() {
               Quick Links
             </h3>
             <ul className="space-y-2">
-              {['Stories', 'Community', 'Guides', 'Showcase'].map((item) => (
-                <li key={item}>
-                  <a href="#" className="text-sm hover:underline transition-colors"
+              {[
+                { label: 'Stories', path: '/Stories' },
+                { label: 'Community', path: '/Community' },
+                { label: 'Guides', path: '/Guides' },
+                { label: 'Showcase', path: '/Showcase' }
+              ].map((item) => (
+                <li key={item.label}>
+                  <a href={item.path} className="text-sm hover:underline transition-colors"
                      style={{ color: 'var(--text-secondary)' }}>
-                    {item}
+                    {item.label}
                   </a>
                 </li>
               ))}
@@ -44,11 +49,16 @@ export function Footer() {
               Resources
             </h3>
             <ul className="space-y-2">
-              {['Financial Literacy', 'Legal Rights', 'Mentorship', 'Business Support'].map((item) => (
-                <li key={item}>
-                  <a href="#" className="text-sm hover:underline transition-colors"
+              {[
+                { label: 'Financial Literacy', path: '/Stories' },
+                { label: 'Legal Rights', path: '/Community' },
+                { label: 'Mentorship', path: '/Guides' },
+                { label: 'Business Support', path: '/Showcase' }
+              ].map((item) => (
+                <li key={item.label}>
+                  <a href={item.path} className="text-sm hover:underline transition-colors"
                      style={{ color: 'var(--text-secondary)' }}>
-                    {item}
+                    {item.label}
                   </a>
                 </li>
               ))}
