@@ -18,18 +18,35 @@ interface Profile {
   skills: string[];
 }
 
+// Define the Discussion interface
+interface Discussion {
+  id: string;
+  title: string;
+  description: string;
+  author_id: string;
+  author_name: string; // Assuming you'll join with profiles or store name directly
+  created_at: string;
+  category: string;
+  replies_count: number; // To store the count of replies
+}
+
 export function Community() {
   const [activeTab, setActiveTab] = useState<'profiles' | 'forums'>('profiles');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<'all' | 'mentor' | 'mentee'>('all');
   const [selectedLocation, setSelectedLocation] = useState('');
-  const [selectedTopic, setSelectedTopic] = useState<ForumTopic | null>(null);
+  const [selectedTopic, setSelectedTopic] = useState<Discussion | null>(null);
   const [newPost, setNewPost] = useState('');
 
   // State for fetched profiles
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // State for fetched discussions
+  const [discussions, setDiscussions] = useState<Discussion[]>([]);
+  const [discussionsLoading, setDiscussionsLoading] = useState(false);
+  const [discussionsError, setDiscussionsError] = useState<string | null>(null);
 
   // Fetch profiles from Supabase
   useEffect(() => {
@@ -72,6 +89,58 @@ export function Community() {
     fetchProfiles();
   }, []);
 
+  // Fetch discussions from Supabase
+  useEffect(() => {
+    if (activeTab === 'forums') {
+      const fetchDiscussions = async () => {
+        try {
+          setDiscussionsLoading(true);
+          setDiscussionsError(null);
+
+          const { data, error } = await supabase
+            .from('forum_topics')
+            .select(`
+              id,
+              title,
+              description,
+              created_at,
+              category,
+              author_id,
+              profiles (name),
+              forum_replies (count)
+            `)
+            .order('created_at', { ascending: false });
+
+          if (error) {
+            console.error('Error fetching discussions:', error);
+            setDiscussionsError('Failed to load discussions from database');
+            setDiscussions([]);
+          } else {
+            const formattedDiscussions: Discussion[] = (data || []).map((d: any) => ({
+              id: d.id,
+              title: d.title,
+              description: d.description,
+              author_id: d.author_id,
+              author_name: d.profiles ? d.profiles.name : 'Unknown',
+              created_at: new Date(d.created_at).toLocaleDateString(),
+              category: d.category,
+              replies_count: d.forum_replies ? d.forum_replies.length : 0,
+            }));
+            setDiscussions(formattedDiscussions);
+          }
+        } catch (err) {
+          console.error('Unexpected error fetching discussions:', err);
+          setDiscussionsError('An unexpected error occurred');
+          setDiscussions([]);
+        } finally {
+          setDiscussionsLoading(false);
+        }
+      };
+
+      fetchDiscussions();
+    }
+  }, [activeTab]);
+
 
   // Get unique locations for filter (now based on fetched profiles)
   const locations = useMemo(() => {
@@ -99,15 +168,15 @@ export function Community() {
     });
   }, [profiles, searchTerm, selectedType, selectedLocation]);
 
-  // Filter forum topics (still using mock data)
+  // Filter forum topics (now using fetched data)
   const filteredTopics = useMemo(() => {
-    if (!searchTerm) return mockForumTopics;
-    return mockForumTopics.filter(topic =>
+    if (!searchTerm) return discussions;
+    return discussions.filter(topic =>
       topic.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       topic.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       topic.category.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm]);
+  }, [searchTerm, discussions]);
 
   const handleConnect = (profile: Profile) => {
     // Mock connection - would integrate with backend
@@ -343,59 +412,72 @@ export function Community() {
             <div>
               <div className="mb-6">
                 <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-                  {filteredTopics.length} active discussions
+                  {discussionsLoading ? 'Loading discussions...' : `${filteredTopics.length} active discussions`}
                 </p>
               </div>
               
-              <div className="space-y-4">
-                {filteredTopics.map((topic) => (
-                  <div
-                    key={topic.id}
-                    className="card p-6 cursor-pointer hover:scale-[1.01] transition-transform"
-                    onClick={() => setSelectedTopic(topic)}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                          {topic.title}
-                        </h3>
-                        <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
-                          {topic.description}
-                        </p>
-                        <div className="flex items-center space-x-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                          <span>by {topic.author}</span>
-                          <span className="flex items-center space-x-1">
-                            <MessageCircle className="h-4 w-4" />
-                            <span>{topic.replies} replies</span>
-                          </span>
-                          <span className="flex items-center space-x-1">
-                            <Clock className="h-4 w-4" />
-                            <span>{topic.lastActivity}</span>
-                          </span>
+              {discussionsError && (
+                <div className="mb-6 p-4 rounded-lg" 
+                     style={{ 
+                       backgroundColor: 'var(--error-bg, #fee2e2)', 
+                       color: 'var(--error-text, #dc2626)',
+                       border: '1px solid var(--error-border, #fecaca)'
+                     }}>
+                  {discussionsError}
+                </div>
+              )}
+
+              {!discussionsLoading && !discussionsError && filteredTopics.length > 0 && (
+                <div className="space-y-4">
+                  {filteredTopics.map((topic) => (
+                    <div
+                      key={topic.id}
+                      className="card p-6 cursor-pointer hover:scale-[1.01] transition-transform"
+                      onClick={() => setSelectedTopic(topic)}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                            {topic.title}
+                          </h3>
+                          <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
+                            {topic.description}
+                          </p>
+                          <div className="flex items-center space-x-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                            <span>by {topic.author_name}</span>
+                            <span className="flex items-center space-x-1">
+                              <MessageCircle className="h-4 w-4" />
+                              <span>{topic.replies_count} replies</span>
+                            </span>
+                            <span className="flex items-center space-x-1">
+                              <Clock className="h-4 w-4" />
+                              <span>{topic.created_at}</span>
+                            </span>
+                          </div>
                         </div>
+                        <span
+                          className="px-3 py-1 text-xs rounded-full whitespace-nowrap ml-4"
+                          style={{ 
+                            backgroundColor: 'var(--tertiary)',
+                            color: 'var(--text-primary)'
+                          }}
+                        >
+                          {topic.category}
+                        </span>
                       </div>
-                      <span
-                        className="px-3 py-1 text-xs rounded-full whitespace-nowrap ml-4"
-                        style={{ 
-                          backgroundColor: 'var(--tertiary)',
-                          color: 'var(--text-primary)'
-                        }}
-                      >
-                        {topic.category}
-                      </span>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
               
-              {filteredTopics.length === 0 && (
+              {!discussionsLoading && !discussionsError && filteredTopics.length === 0 && (
                 <div className="text-center py-12">
                   <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-50" style={{ color: 'var(--text-secondary)' }} />
                   <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
                     No discussions found
                   </h3>
                   <p style={{ color: 'var(--text-secondary)' }}>
-                    Try a different search term.
+                    Try a different search term or start a new discussion!
                   </p>
                 </div>
               )}
@@ -418,9 +500,9 @@ export function Community() {
                 {selectedTopic.description}
               </p>
               <div className="flex items-center space-x-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                <span>by {selectedTopic.author}</span>
-                <span>{selectedTopic.replies} replies</span>
-                <span>Last activity: {selectedTopic.lastActivity}</span>
+                <span>by {selectedTopic.author_name}</span>
+                <span>{selectedTopic.replies_count} replies</span>
+                <span>Created: {selectedTopic.created_at}</span>
               </div>
             </div>
             
