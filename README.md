@@ -1,5 +1,7 @@
 # EmpowHer - Women's Empowerment Platform
 
+https://github.com/user-attachments/assets/bb64192d-5273-4959-9583-301d59a158b6
+
 A comprehensive React frontend application designed to empower women through stories, community connection, and access to essential resources.
 
 ## 🌟 Features
@@ -238,5 +240,6 @@ For support and questions:
 - Check the documentation wiki
 
 ---
+
 
 **Built with ❤️ for women everywhere by the EmpowHer team**
