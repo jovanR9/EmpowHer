@@ -375,14 +375,15 @@ export function Community() {
           </button>
           {activeTab === "forums" && (
             <button
-              onClick={() => setIsDiscussionModalOpen(true)}
-              className="px-6 py-3 font-semibold rounded-lg transition-all duration-200 hover:transform hover:-translate-y-1 btn-secondary"
-            >
-              Start a Discussion
-            </button>
-          )}
-        </div>
-      </Hero>
+            onClick={() => setIsDiscussionModalOpen(true)}
+            className={`px-6 py-3 font-semibold rounded-lg transition-all duration-200 hover:transform hover:-translate-y-1 !text-[#3A3440] hover:!text-white btn-primary`}
+            // Removed inline style to use btn-primary's default background
+          >
+            Start a Discussion
+          </button>
+        )}
+      </div>
+    </Hero>
 
       <section className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
