@@ -14,6 +14,7 @@ interface Story {
   excerpt: string;
   body: string;
   author: string;
+  profile_image_url?: string; // Add profile_image_url
   image?: string;
   tags: string[];
   likes: number;
@@ -44,7 +45,8 @@ const normalizeStory = (story: any): Story => {
     title: story.title || "",
     excerpt: story.excerpt || "",
     body: story.body || "",
-    author: story.author || "",
+    author: story.author || "", // 'author' is directly from stories table
+    profile_image_url: story.profile_image_url, // Assign profile_image_url directly
     image: story.image,
     tags: Array.isArray(story.tags) ? story.tags : [],
     likes: typeof story.likes === "number" ? story.likes : 0,
@@ -70,11 +72,11 @@ export function Stories() {
         setError(null);
 
         const { data, error } = await supabase
-          .from("stories")
-          .select("*")
-          .eq("published", true);
+        .from("stories")
+        .select("*") // Simply select all columns from 'stories' table
+        .eq("published", true);
 
-        if (error) {
+      if (error) {
           console.error("Error fetching stories:", error);
           setError("Failed to load stories from database");
           setStories([]);
@@ -377,10 +379,10 @@ export function Stories() {
           {/* Stories Grid */}
           {filteredStories.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredStories.map((story) => (
-                <StoryCard key={story.id} story={story} />
-              ))}
-            </div>
+            {filteredStories.map((story) => (
+              <StoryCard key={story.id} story={story} />
+            ))}
+          </div>
           ) : (
             <div className="text-center py-12">
               <div className="max-w-md mx-auto">
