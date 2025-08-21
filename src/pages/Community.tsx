@@ -141,7 +141,7 @@ export function Community() {
               created_at,
               category,
               author_id,
-              profiles (name),
+              author_name,
               forum_replies (count)
             `
             )
@@ -158,7 +158,7 @@ export function Community() {
                 title: d.title,
                 description: d.description,
                 author_id: d.author_id,
-                author_name: d.profiles ? d.profiles.name : "Unknown",
+                author_name: d.author_name,
                 created_at: new Date(d.created_at).toLocaleDateString(),
                 category: d.category,
                 replies_count: d.forum_replies ? d.forum_replies.length : 0,
