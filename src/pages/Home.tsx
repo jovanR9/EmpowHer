@@ -13,6 +13,7 @@ import { mockGuides, mockBusinesses, Story } from "../data/mockData";
 import { supabase } from "../lib/supabaseClient";
 import { Showcase } from "./Showcase";
 import "../styles/cards.css";
+import { Modal } from "../components/Common/Modal";
 
 export function Home() {
   const [featuredStories, setFeaturedStories] = useState<Story[]>([]);
@@ -38,6 +39,38 @@ export function Home() {
 
   const featuredGuides = mockGuides.slice(0, 3);
   const featuredBusinesses = mockBusinesses.slice(0, 3);
+
+  //guides
+  const [selectedGuide, setSelectedGuide] = useState<
+    (typeof mockGuides)[0] | null
+  >(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openGuide = (guide: (typeof mockGuides)[0]) => {
+    setSelectedGuide(guide);
+    setIsModalOpen(true);
+  };
+
+  const closeGuide = () => {
+    setIsModalOpen(false);
+    setSelectedGuide(null);
+  };
+
+  //business
+  const [selectedBusiness, setSelectedBusiness] = useState<
+    (typeof featuredBusinesses)[0] | null
+  >(null);
+  const [isBusinessModalOpen, setIsBusinessModalOpen] = useState(false);
+
+  const openBusiness = (business: (typeof featuredBusinesses)[0]) => {
+    setSelectedBusiness(business);
+    setIsBusinessModalOpen(true);
+  };
+
+  const closeBusiness = () => {
+    setIsBusinessModalOpen(false);
+    setSelectedBusiness(null);
+  };
 
   const features = [
     {
@@ -236,18 +269,59 @@ export function Home() {
                   >
                     {guide.excerpt}
                   </p>
-                  <Link
-                    to={`/guides/${guide.id}`}
+                  {/* Modal Button */}
+                  <button
+                    onClick={() => openGuide(guide)}
                     className="btn-primary inline-block px-4 py-2 text-sm font-medium rounded-lg"
                   >
                     Read Guide
-                  </Link>
+                  </button>
                 </div>
               </div>
             ))}
           </div>
+
+          {/* Modal */}
+          {selectedGuide && (
+            <Modal
+              isOpen={isModalOpen}
+              onClose={closeGuide}
+              title={selectedGuide.title}
+              size="lg"
+            >
+              <img
+                src={selectedGuide.image}
+                alt={selectedGuide.title}
+                className="w-full h-64 object-cover rounded-lg mb-4"
+              />
+              <div className="flex items-center justify-between mb-4">
+                <span
+                  className="px-3 py-1 text-xs rounded-full"
+                  style={{
+                    backgroundColor: "var(--secondary)",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  {selectedGuide.category}
+                </span>
+                <span
+                  className="text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  {selectedGuide.readTime} min read
+                </span>
+              </div>
+              <p
+                className="text-base"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                {selectedGuide.content ?? selectedGuide.excerpt}
+              </p>
+            </Modal>
+          )}
         </div>
       </section>
+
       {/* Featured Businesses */}
       <section
         className="py-16 px-4 sm:px-6 lg:px-8"
@@ -307,16 +381,50 @@ export function Home() {
                 >
                   {business.description}
                 </p>
-                <Link
-                  to={`/showcase/${business.id}`}
+                <button
+                  onClick={() => openBusiness(business)}
                   className="btn-primary px-4 py-2 text-sm font-medium rounded-lg w-full"
                 >
                   Learn More
-                </Link>
+                </button>
               </div>
             ))}
           </div>
         </div>
+
+        {/* Modal */}
+        {selectedBusiness && (
+          <Modal
+            isOpen={isBusinessModalOpen}
+            onClose={closeBusiness}
+            title={selectedBusiness.name}
+            size="lg"
+          >
+            <img
+              src={selectedBusiness.logo}
+              alt={selectedBusiness.name}
+              className="w-full h-48 object-cover rounded-lg mb-4"
+            />
+            <p
+              className="text-sm mb-2"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              by {selectedBusiness.owner}
+            </p>
+            <span
+              className="px-3 py-1 text-xs rounded-full mb-3 inline-block"
+              style={{
+                backgroundColor: "var(--tertiary)",
+                color: "var(--text-primary)",
+              }}
+            >
+              {selectedBusiness.category}
+            </span>
+            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+              {selectedBusiness.description}
+            </p>
+          </Modal>
+        )}
       </section>
       {/* CTA Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 text-center">
