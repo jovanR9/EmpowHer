@@ -10,6 +10,7 @@ import { StorySubmit } from './pages/StorySubmit';
 import { Community } from './pages/Community';
 import { Guides } from './pages/Guides';
 import { Showcase } from './pages/Showcase';
+import ProductGallery from './pages/ProductGallery';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
               <Route path="/guides" element={<Guides />} />
               <Route path="/showcase" element={<Showcase />} />
               <Route path="/showcase/:id" element={<Showcase />} />
+              <Route path="/products" element={<ProductGallery />} />
             </Routes>
           </Layout>
         </Router>

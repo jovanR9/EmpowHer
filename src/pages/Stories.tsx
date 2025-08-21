@@ -1,11 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Plus, Filter, SortAsc } from 'lucide-react';
-import { Hero } from '../components/Common/Hero';
-import { SearchBar } from '../components/Common/SearchBar';
-import { StoryCard } from '../components/Stories/StoryCard';
-import { supabase } from '../lib/supabaseClient';
-import { useStorage } from '../contexts/StorageContext';
+import React, { useState, useMemo, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Plus, Filter, SortAsc } from "lucide-react";
+import { Hero } from "../components/Common/Hero";
+import { SearchBar } from "../components/Common/SearchBar";
+import { StoryCard } from "../components/Stories/StoryCard";
+import { supabase } from "../lib/supabaseClient";
+import { useStorage } from "../contexts/StorageContext";
 
 interface Story {
   id: string;
@@ -25,7 +25,7 @@ const isValidStory = (story: any): boolean => {
   const dateField = story.created_at || story.createdAt;
   return (
     story &&
-    typeof story === 'object' &&
+    typeof story === "object" &&
     story.id &&
     story.title &&
     story.excerpt &&
@@ -41,23 +41,25 @@ const normalizeStory = (story: any): Story => {
   return {
     id: story.id,
     created_at: story.created_at || story.createdAt,
-    title: story.title || '',
-    excerpt: story.excerpt || '',
-    body: story.body || '',
-    author: story.author || '',
+    title: story.title || "",
+    excerpt: story.excerpt || "",
+    body: story.body || "",
+    author: story.author || "",
     image: story.image,
     tags: Array.isArray(story.tags) ? story.tags : [],
-    likes: typeof story.likes === 'number' ? story.likes : 0,
-    published: story.published !== false // Default to true if not specified
+    likes: typeof story.likes === "number" ? story.likes : 0,
+    published: story.published !== false, // Default to true if not specified
   };
 };
 
 export function Stories() {
   const { userStories } = useStorage();
   const [stories, setStories] = useState<Story[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTag, setSelectedTag] = useState('');
-  const [sortBy, setSortBy] = useState<'newest' | 'popular' | 'oldest'>('newest');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTag, setSelectedTag] = useState("");
+  const [sortBy, setSortBy] = useState<"newest" | "popular" | "oldest">(
+    "newest"
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,29 +68,33 @@ export function Stories() {
       try {
         setLoading(true);
         setError(null);
-        
+
         const { data, error } = await supabase
-          .from('stories')
-          .select('*')
-          .eq('published', true);
+          .from("stories")
+          .select("*")
+          .eq("published", true);
 
         if (error) {
-          console.error('Error fetching stories:', error);
-          setError('Failed to load stories from database');
+          console.error("Error fetching stories:", error);
+          setError("Failed to load stories from database");
           setStories([]);
         } else {
           // Filter out any invalid stories from database
           const validStories = (data || []).filter(isValidStory);
           setStories(validStories);
-          
+
           // Log if any stories were filtered out
           if (data && data.length !== validStories.length) {
-            console.warn(`Filtered out ${data.length - validStories.length} invalid stories from database`);
+            console.warn(
+              `Filtered out ${
+                data.length - validStories.length
+              } invalid stories from database`
+            );
           }
         }
       } catch (err) {
-        console.error('Unexpected error fetching stories:', err);
-        setError('An unexpected error occurred');
+        console.error("Unexpected error fetching stories:", err);
+        setError("An unexpected error occurred");
         setStories([]);
       } finally {
         setLoading(false);
@@ -102,11 +108,14 @@ export function Stories() {
   const allStories = useMemo(() => {
     // Filter user stories - only include complete stories
     const validUserStories = (userStories || [])
-      .filter(story => {
+      .filter((story) => {
         const isValid = isValidStory(story);
         // Only log if it's a partial story (has some fields but not all)
         if (!isValid && story && story.id && Object.keys(story).length > 3) {
-          console.warn('Incomplete user story filtered out (missing required fields):', story);
+          console.warn(
+            "Incomplete user story filtered out (missing required fields):",
+            story
+          );
         }
         return isValid;
       })
@@ -117,10 +126,10 @@ export function Stories() {
 
     // Combine all valid stories
     const combined = [...validUserStories, ...normalizedFetchedStories];
-    
+
     // Remove duplicates based on ID
-    const uniqueStories = combined.filter((story, index, self) => 
-      index === self.findIndex(s => s.id === story.id)
+    const uniqueStories = combined.filter(
+      (story, index, self) => index === self.findIndex((s) => s.id === story.id)
     );
 
     return uniqueStories;
@@ -129,10 +138,10 @@ export function Stories() {
   // Get all unique tags
   const allTags = useMemo(() => {
     const tagSet = new Set<string>();
-    allStories.forEach(story => {
+    allStories.forEach((story) => {
       if (story.tags && Array.isArray(story.tags)) {
-        story.tags.forEach(tag => {
-          if (tag && typeof tag === 'string') {
+        story.tags.forEach((tag) => {
+          if (tag && typeof tag === "string") {
             tagSet.add(tag.trim());
           }
         });
@@ -143,29 +152,35 @@ export function Stories() {
 
   // Filter and sort stories
   const filteredStories = useMemo(() => {
-    let filtered = allStories.filter(story => {
+    let filtered = allStories.filter((story) => {
       // Ensure all required fields exist before filtering
       if (!story || !story.title || !story.excerpt || !story.author) {
         return false;
       }
 
-      const matchesSearch = story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          story.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          story.author.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesTag = !selectedTag || (story.tags && story.tags.includes(selectedTag));
-      
+      const matchesSearch =
+        story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        story.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        story.author.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesTag =
+        !selectedTag || (story.tags && story.tags.includes(selectedTag));
+
       return matchesSearch && matchesTag;
     });
 
     // Sort stories
     filtered.sort((a, b) => {
       switch (sortBy) {
-        case 'newest':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case 'oldest':
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        case 'popular':
+        case "newest":
+          return (
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          );
+        case "oldest":
+          return (
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          );
+        case "popular":
           return (b.likes || 0) - (a.likes || 0);
         default:
           return 0;
@@ -195,7 +210,7 @@ export function Stories() {
         <section className="py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="text-center py-12">
-              <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
+              <p className="text-lg" style={{ color: "var(--text-secondary)" }}>
                 Loading stories...
               </p>
             </div>
@@ -224,19 +239,22 @@ export function Stories() {
         <div className="max-w-7xl mx-auto">
           {/* Error Message */}
           {error && (
-            <div className="mb-6 p-4 rounded-lg" 
-                 style={{ 
-                   backgroundColor: 'var(--error-bg, #fee2e2)', 
-                   color: 'var(--error-text, #dc2626)',
-                   border: '1px solid var(--error-border, #fecaca)'
-                 }}>
+            <div
+              className="mb-6 p-4 rounded-lg"
+              style={{
+                backgroundColor: "var(--error-bg, #fee2e2)",
+                color: "var(--error-text, #dc2626)",
+                border: "1px solid var(--error-border, #fecaca)",
+              }}
+            >
               {error}
             </div>
           )}
 
           {/* Search and Filters */}
-          <div className="mb-8 space-y-4">
-            <div className="flex flex-col lg:flex-row gap-4">
+          <div className="mb-8">
+            <div className="flex flex-col gap-4 w-full">
+              {/* Search */}
               <div className="flex-1">
                 <SearchBar
                   value={searchTerm}
@@ -244,47 +262,62 @@ export function Stories() {
                   placeholder="Search stories by title, author, or content..."
                 />
               </div>
-              
-              <div className="flex flex-col sm:flex-row gap-4">
-                {/* Tag Filter */}
-                <div className="relative">
+
+              <div className="flex flex-row gap-4">
+                {/* Filter */}
+                <div
+                  className="flex items-center rounded-lg px-3 cursor-pointer border"
+                  style={{
+                    backgroundColor: "var(--bg-secondary)",
+                    borderColor: "var(--border-color)",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  <Filter
+                    className="h-5 w-5 mr-2 shrink-0"
+                    style={{ color: "var(--text-secondary)" }}
+                  />
+
                   <select
                     value={selectedTag}
                     onChange={(e) => setSelectedTag(e.target.value)}
-                    className="input-field pl-10 pr-4 py-3 rounded-lg appearance-none cursor-pointer"
-                    style={{
-                      backgroundColor: 'var(--bg-secondary)',
-                      borderColor: 'var(--border-color)',
-                      color: 'var(--text-primary)'
-                    }}
+                    className="bg-transparent focus:outline-none appearance-none w-40 truncate"
                   >
                     <option value="">All Tags</option>
-                    {allTags.map(tag => (
-                      <option key={tag} value={tag}>{tag}</option>
+                    {allTags.map((tag) => (
+                      <option key={tag} value={tag}>
+                        {tag}
+                      </option>
                     ))}
                   </select>
-                  <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5"
-                          style={{ color: 'var(--text-secondary)' }} />
                 </div>
 
-                {/* Sort */}
-                <div className="relative">
+                <div
+                  className="flex items-center rounded-lg px-3 cursor-pointer border"
+                  style={{
+                    backgroundColor: "var(--bg-secondary)",
+                    borderColor: "var(--border-color)",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  <SortAsc
+                    className="h-5 w-5 mr-2 shrink-0"
+                    style={{ color: "var(--text-secondary)" }}
+                  />
+
                   <select
                     value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as 'newest' | 'popular' | 'oldest')}
-                    className="input-field pl-10 pr-4 py-3 rounded-lg appearance-none cursor-pointer"
-                    style={{
-                      backgroundColor: 'var(--bg-secondary)',
-                      borderColor: 'var(--border-color)',
-                      color: 'var(--text-primary)'
-                    }}
+                    onChange={(e) =>
+                      setSortBy(
+                        e.target.value as "newest" | "popular" | "oldest"
+                      )
+                    }
+                    className="py-3 pr-4 bg-transparent focus:outline-none appearance-none"
                   >
                     <option value="newest">Newest First</option>
                     <option value="popular">Most Popular</option>
                     <option value="oldest">Oldest First</option>
                   </select>
-                  <SortAsc className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5"
-                           style={{ color: 'var(--text-secondary)' }} />
                 </div>
               </div>
             </div>
@@ -293,14 +326,16 @@ export function Stories() {
             {(searchTerm || selectedTag) && (
               <div className="flex flex-wrap gap-2">
                 {searchTerm && (
-                  <span className="px-3 py-1 text-sm rounded-full"
-                        style={{ 
-                          backgroundColor: 'var(--primary)',
-                          color: 'var(--text-primary)'
-                        }}>
+                  <span
+                    className="px-3 py-1 text-sm rounded-full"
+                    style={{
+                      backgroundColor: "var(--primary)",
+                      color: "var(--text-primary)",
+                    }}
+                  >
                     Search: "{searchTerm}"
-                    <button 
-                      onClick={() => setSearchTerm('')}
+                    <button
+                      onClick={() => setSearchTerm("")}
                       className="ml-2 hover:opacity-70"
                       aria-label="Clear search"
                     >
@@ -309,14 +344,16 @@ export function Stories() {
                   </span>
                 )}
                 {selectedTag && (
-                  <span className="px-3 py-1 text-sm rounded-full"
-                        style={{ 
-                          backgroundColor: 'var(--secondary)',
-                          color: 'var(--text-primary)'
-                        }}>
+                  <span
+                    className="px-3 py-1 text-sm rounded-full"
+                    style={{
+                      backgroundColor: "var(--secondary)",
+                      color: "var(--text-primary)",
+                    }}
+                  >
                     Tag: {selectedTag}
-                    <button 
-                      onClick={() => setSelectedTag('')}
+                    <button
+                      onClick={() => setSelectedTag("")}
                       className="ml-2 hover:opacity-70"
                       aria-label="Clear tag filter"
                     >
@@ -330,8 +367,9 @@ export function Stories() {
 
           {/* Results Count */}
           <div className="mb-6">
-            <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-              Found {filteredStories.length} {filteredStories.length === 1 ? 'story' : 'stories'}
+            <p className="text-lg" style={{ color: "var(--text-secondary)" }}>
+              Found {filteredStories.length}{" "}
+              {filteredStories.length === 1 ? "story" : "stories"}
               {selectedTag && ` in "${selectedTag}"`}
             </p>
           </div>
@@ -346,18 +384,25 @@ export function Stories() {
           ) : (
             <div className="text-center py-12">
               <div className="max-w-md mx-auto">
-                <div className="w-24 h-24 rounded-full mx-auto mb-4 flex items-center justify-center"
-                     style={{ backgroundColor: 'var(--primary)', opacity: 0.2 }}>
-                  <Plus className="h-12 w-12" style={{ color: 'var(--text-primary)' }} />
+                <div
+                  className="w-24 h-24 rounded-full mx-auto mb-4 flex items-center justify-center"
+                  style={{ backgroundColor: "var(--primary)", opacity: 0.2 }}
+                >
+                  <Plus
+                    className="h-12 w-12"
+                    style={{ color: "var(--text-primary)" }}
+                  />
                 </div>
-                <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                <h3
+                  className="text-xl font-semibold mb-2"
+                  style={{ color: "var(--text-primary)" }}
+                >
                   No Stories Found
                 </h3>
-                <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>
-                  {searchTerm || selectedTag 
-                    ? 'Try adjusting your search or filters.'
-                    : 'Be the first to share your inspiring story!'
-                  }
+                <p className="mb-6" style={{ color: "var(--text-secondary)" }}>
+                  {searchTerm || selectedTag
+                    ? "Try adjusting your search or filters."
+                    : "Be the first to share your inspiring story!"}
                 </p>
                 <Link
                   to="/stories/submit"
