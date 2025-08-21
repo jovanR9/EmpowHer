@@ -32,6 +32,21 @@ export function Home() {
     setSelectedGuide(null);
   };
 
+  const [selectedBusiness, setSelectedBusiness] = useState<
+    (typeof featuredBusinesses)[0] | null
+  >(null);
+  const [isBusinessModalOpen, setIsBusinessModalOpen] = useState(false);
+
+  const openBusiness = (business: (typeof featuredBusinesses)[0]) => {
+    setSelectedBusiness(business);
+    setIsBusinessModalOpen(true);
+  };
+
+  const closeBusiness = () => {
+    setIsBusinessModalOpen(false);
+    setSelectedBusiness(null);
+  };
+
   useEffect(() => {
     const fetchFeaturedStories = async () => {
       const { data, error } = await supabase
@@ -376,7 +391,7 @@ export function Home() {
         </div>
       </section>
 
-      <section
+      {/* <section
         className="py-16 px-4 sm:px-6 lg:px-8"
         style={{ backgroundColor: "var(--bg-secondary)" }}
       >
@@ -444,7 +459,112 @@ export function Home() {
             ))}
           </div>
         </div>
+      </section> */}
+
+      <section
+        className="py-16 px-4 sm:px-6 lg:px-8"
+        style={{ backgroundColor: "var(--bg-secondary)" }}
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <h2
+              className="text-3xl font-bold"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Featured Businesses
+            </h2>
+            <Link
+              to="/showcase"
+              className="inline-flex items-center space-x-2 text-lg font-medium transition-colors"
+              style={{ color: "var(--primary)" }}
+            >
+              <span>View All</span>
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {featuredBusinesses.map((business) => (
+              <div key={business.id} className="card p-6 text-center">
+                <img
+                  src={business.logo}
+                  alt={business.name}
+                  className="w-20 h-20 object-cover rounded-full mx-auto mb-4"
+                  loading="lazy"
+                />
+                <h3
+                  className="text-xl font-semibold mb-2"
+                  style={{ color: "var(--text-primary)" }}
+                >
+                  {business.name}
+                </h3>
+                <p
+                  className="text-sm mb-2"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  by {business.owner}
+                </p>
+                <span
+                  className="px-3 py-1 text-xs rounded-full mb-3 inline-block"
+                  style={{
+                    backgroundColor: "var(--tertiary)",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  {business.category}
+                </span>
+                <p
+                  className="text-sm mb-4"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  {business.description}
+                </p>
+                <button
+                  onClick={() => openBusiness(business)}
+                  className="btn-primary px-4 py-2 text-sm font-medium rounded-lg w-full"
+                >
+                  Learn More
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Modal */}
+        {selectedBusiness && (
+          <Modal
+            isOpen={isBusinessModalOpen}
+            onClose={closeBusiness}
+            title={selectedBusiness.name}
+            size="lg"
+          >
+            <img
+              src={selectedBusiness.logo}
+              alt={selectedBusiness.name}
+              className="w-full h-48 object-cover rounded-lg mb-4"
+            />
+            <p
+              className="text-sm mb-2"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              by {selectedBusiness.owner}
+            </p>
+            <span
+              className="px-3 py-1 text-xs rounded-full mb-3 inline-block"
+              style={{
+                backgroundColor: "var(--tertiary)",
+                color: "var(--text-primary)",
+              }}
+            >
+              {selectedBusiness.category}
+            </span>
+            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+              {selectedBusiness.description}
+            </p>
+          </Modal>
+        )}
       </section>
+
       {/* CTA Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 text-center">
         <div className="max-w-4xl mx-auto">
