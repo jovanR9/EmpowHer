@@ -1,5 +1,6 @@
 import React from 'react';
 import { Heart, Mail, MapPin, Phone } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 
 export function Footer() {
   return (
@@ -13,7 +14,15 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <Heart className="h-8 w-8" style={{ color: 'var(--primary)' }} />
+              
+          <Link to="/" className="flex items-center space-x-2">
+            <img 
+              src="/images/empowher_logo.svg"   // 👈 file path inside public/image
+              alt="EmpowHer Logo" 
+              className="h-8 w-8 object-contain"
+            />
+
+          </Link>
               <span className="text-2xl font-bold text-gradient">EmpowHer</span>
             </div>
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -27,11 +36,16 @@ export function Footer() {
               Quick Links
             </h3>
             <ul className="space-y-2">
-              {['Stories', 'Community', 'Guides', 'Showcase'].map((item) => (
-                <li key={item}>
-                  <a href="#" className="text-sm hover:underline transition-colors"
+              {[
+                { label: 'Stories', path: '/Stories' },
+                { label: 'Community', path: '/Community' },
+                { label: 'Guides', path: '/Guides' },
+                { label: 'Showcase', path: '/Showcase' }
+              ].map((item) => (
+                <li key={item.label}>
+                  <a href={item.path} className="text-sm hover:underline transition-colors"
                      style={{ color: 'var(--text-secondary)' }}>
-                    {item}
+                    {item.label}
                   </a>
                 </li>
               ))}
@@ -44,11 +58,16 @@ export function Footer() {
               Resources
             </h3>
             <ul className="space-y-2">
-              {['Financial Literacy', 'Legal Rights', 'Mentorship', 'Business Support'].map((item) => (
-                <li key={item}>
-                  <a href="#" className="text-sm hover:underline transition-colors"
+              {[
+                { label: 'Financial Literacy', path: '/Stories' },
+                { label: 'Legal Rights', path: '/Community' },
+                { label: 'Mentorship', path: '/Guides' },
+                { label: 'Business Support', path: '/Showcase' }
+              ].map((item) => (
+                <li key={item.label}>
+                  <a href={item.path} className="text-sm hover:underline transition-colors"
                      style={{ color: 'var(--text-secondary)' }}>
-                    {item}
+                    {item.label}
                   </a>
                 </li>
               ))}
