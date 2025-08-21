@@ -9,7 +9,7 @@ interface Story {
   excerpt: string;
   body: string;
   author: string;
-  authorAvatar: string;
+  profile_image_url?: string; // Change from authorAvatar to profile_image_url
   image?: string;
   tags: string[];
   likes: number;
@@ -29,7 +29,13 @@ export const StoryCard = ({ story }: { story: Story }) => {
 
       <div className="story-card-content">
         <div className="story-card-author">
-          <img src={story.authorAvatar} alt={story.author} />
+          {story.profile_image_url ? ( // Conditionally render image if profile_image_url exists
+            <img src={story.profile_image_url} alt={story.author} className="w-10 h-10 rounded-full mr-3 object-cover" />
+          ) : (
+            <div className="w-10 h-10 rounded-full mr-3 bg-gray-300 flex items-center justify-center text-gray-600 font-bold text-lg">
+              {story.author ? story.author.charAt(0).toUpperCase() : '?'}{" "}
+            </div> // Placeholder if no image
+          )}
           <div>
             <p className="font-medium" style={{ color: "var(--text-primary)" }}>
               {story.author}
