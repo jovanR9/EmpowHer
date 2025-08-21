@@ -1,13 +1,22 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Briefcase, ShoppingBag, Plus, Search, Filter, Eye, ExternalLink, Mail } from 'lucide-react';
-import { Hero } from '../components/Common/Hero';
-import { SearchBar } from '../components/Common/SearchBar';
-import { Modal } from '../components/Common/Modal';
-import { BusinessForm } from '../components/Showcase/businessForm';
-import { ProductForm } from '../components/Showcase/ProductForm';
-import { supabase } from '../lib/supabaseClient'; // Import supabase
-import { Business } from '../data/mockData'; // Keep mockProducts for now
-import { Product } from '../types/Product'; // Define a new Product type based on Supabase schema
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  Briefcase,
+  ShoppingBag,
+  Plus,
+  Search,
+  Filter,
+  Eye,
+  ExternalLink,
+  Mail,
+} from "lucide-react";
+import { Hero } from "../components/Common/Hero";
+import { SearchBar } from "../components/Common/SearchBar";
+import { Modal } from "../components/Common/Modal";
+import { BusinessForm } from "../components/Showcase/businessForm";
+import { ProductForm } from "../components/Showcase/ProductForm";
+import { supabase } from "../lib/supabaseClient"; // Import supabase
+import { Business } from "../data/mockData"; // Keep mockProducts for now
+import { Product } from "../types/Product"; // Define a new Product type based on Supabase schema
 
 export function Showcase() {
   const [activeTab, setActiveTab] = useState<"businesses" | "products">(
@@ -16,10 +25,13 @@ export function Showcase() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
+    null
+  );
   const [showBusinessForm, setShowBusinessForm] = useState(false);
   const [showProductForm, setShowProductForm] = useState(false);
-  const [showBusinessProductsInModal, setShowBusinessProductsInModal] = useState(false);
+  const [showBusinessProductsInModal, setShowBusinessProductsInModal] =
+    useState(false);
 
   // State for fetched businesses
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -33,30 +45,30 @@ export function Showcase() {
       setError(null);
 
       const { data, error } = await supabase
-        .from('businesses')
-        .select('*')
-        .order('name'); // Order by name for consistent display
+        .from("businesses")
+        .select("*")
+        .order("name"); // Order by name for consistent display
 
       if (error) {
-        console.error('Error fetching businesses:', error);
-        setError('Failed to load businesses from database');
+        console.error("Error fetching businesses:", error);
+        setError("Failed to load businesses from database");
         setBusinesses([]);
       } else {
         // Basic validation and normalization for fetched data
-        const validBusinesses: Business[] = (data || []).map(b => ({
+        const validBusinesses: Business[] = (data || []).map((b) => ({
           id: b.id,
-          name: b.name || 'Untitled Business',
-          owner: b.owner || 'Unknown',
-          description: b.description || '',
-          category: b.category || 'General',
-          logo: b.logo || '/images/placeholder-business.svg',
-          contact: b.contact || '',
+          name: b.name || "Untitled Business",
+          owner: b.owner || "Unknown",
+          description: b.description || "",
+          category: b.category || "General",
+          logo: b.logo || "/images/placeholder-business.svg",
+          contact: b.contact || "",
         }));
         setBusinesses(validBusinesses);
       }
     } catch (err) {
-      console.error('Unexpected error fetching businesses:', err);
-      setError('An unexpected error occurred');
+      console.error("Unexpected error fetching businesses:", err);
+      setError("An unexpected error occurred");
       setBusinesses([]);
     } finally {
       setLoading(false);
@@ -75,7 +87,9 @@ export function Showcase() {
   // State for products of the selected business
   const [businessProducts, setBusinessProducts] = useState<Product[]>([]);
   const [loadingBusinessProducts, setLoadingBusinessProducts] = useState(false);
-  const [errorBusinessProducts, setErrorBusinessProducts] = useState<string | null>(null);
+  const [errorBusinessProducts, setErrorBusinessProducts] = useState<
+    string | null
+  >(null);
 
   // Fetch products from Supabase
   const fetchProducts = async () => {
@@ -84,30 +98,30 @@ export function Showcase() {
       setErrorProducts(null);
 
       const { data, error } = await supabase
-        .from('products')
-        .select('*, businesses(name)')
-        .order('name');
+        .from("products")
+        .select("*, businesses(name)")
+        .order("name");
 
       if (error) {
-        console.error('Error fetching products:', error);
-        setErrorProducts('Failed to load products from database');
+        console.error("Error fetching products:", error);
+        setErrorProducts("Failed to load products from database");
         setProducts([]);
       } else {
         const validProducts: Product[] = (data || []).map((p: any) => ({
           id: p.id,
           created_at: p.created_at,
-          name: p.name || 'Untitled Product',
-          description: p.description || '',
-          image_url: p.image_url || '/images/placeholder-product.svg',
+          name: p.name || "Untitled Product",
+          description: p.description || "",
+          image_url: p.image_url || "/images/placeholder-product.svg",
           price: p.price || null,
-          category: p.category || 'General',
+          category: p.category || "General",
           businesses: p.businesses || null, // Directly assign the nested businesses object
         }));
         setProducts(validProducts);
       }
     } catch (err) {
-      console.error('Unexpected error fetching products:', err);
-      setErrorProducts('An unexpected error occurred');
+      console.error("Unexpected error fetching products:", err);
+      setErrorProducts("An unexpected error occurred");
       setProducts([]);
     } finally {
       setLoadingProducts(false);
@@ -115,7 +129,7 @@ export function Showcase() {
   };
 
   useEffect(() => {
-    if (activeTab === 'products') {
+    if (activeTab === "products") {
       fetchProducts();
     }
   }, [activeTab]);
@@ -127,31 +141,31 @@ export function Showcase() {
       setErrorBusinessProducts(null);
 
       const { data, error } = await supabase
-        .from('products')
-        .select('*, businesses(name)')
-        .eq('business_id', businessId)
-        .order('name');
+        .from("products")
+        .select("*, businesses(name)")
+        .eq("business_id", businessId)
+        .order("name");
 
       if (error) {
-        console.error('Error fetching business products:', error);
-        setErrorBusinessProducts('Failed to load products for this business');
+        console.error("Error fetching business products:", error);
+        setErrorBusinessProducts("Failed to load products for this business");
         setBusinessProducts([]);
       } else {
         const validProducts: Product[] = (data || []).map((p: any) => ({
           id: p.id,
           created_at: p.created_at,
-          name: p.name || 'Untitled Product',
-          description: p.description || '',
-          image_url: p.image_url || '/images/placeholder-product.svg',
+          name: p.name || "Untitled Product",
+          description: p.description || "",
+          image_url: p.image_url || "/images/placeholder-product.svg",
           price: p.price || null,
-          category: p.category || 'General',
+          category: p.category || "General",
           businesses: p.businesses || null,
         }));
         setBusinessProducts(validProducts);
       }
     } catch (err) {
-      console.error('Unexpected error fetching business products:', err);
-      setErrorBusinessProducts('An unexpected error occurred');
+      console.error("Unexpected error fetching business products:", err);
+      setErrorBusinessProducts("An unexpected error occurred");
       setBusinessProducts([]);
     } finally {
       setLoadingBusinessProducts(false);
@@ -169,7 +183,7 @@ export function Showcase() {
   // Get unique categories (now based on fetched businesses)
   const businessCategories = useMemo(() => {
     const categorySet = new Set<string>();
-    businesses.forEach(business => {
+    businesses.forEach((business) => {
       if (business.category) {
         categorySet.add(business.category);
       }
@@ -205,7 +219,8 @@ export function Showcase() {
     return products.filter((product) => {
       const matchesSearch =
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
+        (product.description &&
+          product.description.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesCategory =
         !selectedCategory || product.category === selectedCategory;
       return matchesSearch && matchesCategory;
@@ -236,9 +251,9 @@ export function Showcase() {
 
   // Determine contact link based on contact type
   const getContactLink = (contact: string) => {
-    if (contact.includes('@')) {
+    if (contact.includes("@")) {
       return `mailto:${contact}`;
-    } else if (contact.startsWith('http')) {
+    } else if (contact.startsWith("http")) {
       return contact;
     } else if (contact.match(/^\+?\d/)) {
       return `tel:${contact}`;
@@ -255,7 +270,7 @@ export function Showcase() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={() => setActiveTab("businesses")}
-            className={`px-6 py-3 font-semibold rounded-lg transition-all duration-200 ${
+            className={`px-6 py-3 font-semibold rounded-lg transition-all duration-200 hover:transform hover:-translate-y-1 !text-[#3A3440] hover:!text-white ${
               activeTab === "businesses"
                 ? "btn-primary"
                 : "border-2 hover:transform hover:-translate-y-1"
@@ -275,17 +290,15 @@ export function Showcase() {
           </button>
           <button
             onClick={() => setActiveTab("products")}
-            className={`px-6 py-3 font-semibold rounded-lg transition-all duration-200 ${
+            className={`px-6 py-3 font-semibold rounded-lg transition-all duration-200 !text-[#3A3440] hover:!text-white ${
               activeTab === "products"
                 ? "btn-primary"
-                : "border-2 hover:transform hover:-translate-y-1"
+                : "border-2 border-white hover:transform hover:-translate-y-1"
             }`}
             style={
               activeTab === "products"
                 ? {}
                 : {
-                    borderColor: "var(--primary)",
-                    color: "var(--primary)",
                     backgroundColor: "transparent",
                   }
             }
@@ -350,16 +363,21 @@ export function Showcase() {
             <div>
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
-                  <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-                    {loading ? 'Loading...' : `${filteredBusinesses.length} ${filteredBusinesses.length === 1 ? 'business' : 'businesses'} found`}
+                  <p
+                    className="text-lg"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    {loading
+                      ? "Loading..."
+                      : `${filteredBusinesses.length} ${
+                          filteredBusinesses.length === 1
+                            ? "business"
+                            : "businesses"
+                        } found`}
                   </p>
-                  {error && (
-                    <p className="text-red-500 text-sm">
-                      {error}
-                    </p>
-                  )}
+                  {error && <p className="text-red-500 text-sm">{error}</p>}
                 </div>
-                <button 
+                <button
                   onClick={() => setShowBusinessForm(true)}
                   className="btn-primary inline-flex items-center space-x-2 px-4 py-2 font-medium rounded-lg hover:transform hover:-translate-y-1 transition-all duration-200"
                 >
@@ -367,53 +385,69 @@ export function Showcase() {
                   <span>List Your Business</span>
                 </button>
               </div>
-              
+
               {loading ? (
                 <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" 
-                       style={{ borderColor: 'var(--primary)' }}></div>
-                  <p style={{ color: 'var(--text-secondary)' }}>Loading businesses...</p>
+                  <div
+                    className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4"
+                    style={{ borderColor: "var(--primary)" }}
+                  ></div>
+                  <p style={{ color: "var(--text-secondary)" }}>
+                    Loading businesses...
+                  </p>
                 </div>
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredBusinesses.map((business) => (
-                      <div key={business.id} className="card p-6 hover:transform hover:-translate-y-1 transition-all duration-200">
+                      <div
+                        key={business.id}
+                        className="card p-6 hover:transform hover:-translate-y-1 transition-all duration-200"
+                      >
                         <div className="text-center mb-4">
                           <img
                             src={business.logo}
                             alt={business.name}
                             className="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-2"
-                            style={{ borderColor: 'var(--border-color)' }}
+                            style={{ borderColor: "var(--border-color)" }}
                             loading="lazy"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
-                              target.src = '/images/placeholder-business.svg';
+                              target.src = "/images/placeholder-business.svg";
                             }}
                           />
-                          <h3 className="text-xl font-semibold mb-1 break-words" style={{ color: 'var(--text-primary)' }}>
+                          <h3
+                            className="text-xl font-semibold mb-1 break-words"
+                            style={{ color: "var(--text-primary)" }}
+                          >
                             {business.name}
                           </h3>
-                          <p className="text-sm mb-2 break-words" style={{ color: 'var(--text-secondary)' }}>
+                          <p
+                            className="text-sm mb-2 break-words"
+                            style={{ color: "var(--text-secondary)" }}
+                          >
                             by {business.owner}
                           </p>
                           {business.category && (
                             <span
                               className="px-3 py-1 text-xs rounded-full"
-                              style={{ 
-                                backgroundColor: 'var(--tertiary)',
-                                color: 'var(--text-primary)'
+                              style={{
+                                backgroundColor: "var(--tertiary)",
+                                color: "var(--text-primary)",
                               }}
                             >
                               {business.category}
                             </span>
                           )}
                         </div>
-                        
-                        <p className="text-sm mb-4 text-center line-clamp-3 break-words" style={{ color: 'var(--text-secondary)' }}>
-                          {business.description || 'No description available.'}
+
+                        <p
+                          className="text-sm mb-4 text-center line-clamp-3 break-words"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          {business.description || "No description available."}
                         </p>
-                        
+
                         <div className="space-y-2">
                           <button
                             onClick={() => setSelectedBusiness(business)}
@@ -424,12 +458,20 @@ export function Showcase() {
                           {business.contact && (
                             <a
                               href={getContactLink(business.contact)}
-                              target={business.contact.startsWith('http') ? '_blank' : undefined}
-                              rel={business.contact.startsWith('http') ? 'noopener noreferrer' : undefined}
+                              target={
+                                business.contact.startsWith("http")
+                                  ? "_blank"
+                                  : undefined
+                              }
+                              rel={
+                                business.contact.startsWith("http")
+                                  ? "noopener noreferrer"
+                                  : undefined
+                              }
                               className="w-full py-2 font-medium rounded-lg border-2 text-center block transition-all duration-200 hover:bg-opacity-10 hover:transform hover:-translate-y-0.5"
-                              style={{ 
-                                borderColor: 'var(--primary)',
-                                color: 'var(--primary)'
+                              style={{
+                                borderColor: "var(--primary)",
+                                color: "var(--primary)",
                               }}
                             >
                               Contact
@@ -439,18 +481,29 @@ export function Showcase() {
                       </div>
                     ))}
                   </div>
-                  
+
                   {filteredBusinesses.length === 0 && !loading && (
                     <div className="text-center py-12">
-                      <Briefcase className="h-16 w-16 mx-auto mb-4 opacity-50" style={{ color: 'var(--text-secondary)' }} />
-                      <h3 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                      <Briefcase
+                        className="h-16 w-16 mx-auto mb-4 opacity-50"
+                        style={{ color: "var(--text-secondary)" }}
+                      />
+                      <h3
+                        className="text-xl font-semibold mb-2"
+                        style={{ color: "var(--text-primary)" }}
+                      >
                         No businesses found
                       </h3>
-                      <p className="mb-4" style={{ color: 'var(--text-secondary)' }}>
-                        {searchTerm || selectedCategory ? 'Try adjusting your search criteria.' : 'Be the first to list your business!'}
+                      <p
+                        className="mb-4"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        {searchTerm || selectedCategory
+                          ? "Try adjusting your search criteria."
+                          : "Be the first to list your business!"}
                       </p>
                       {!searchTerm && !selectedCategory && (
-                        <button 
+                        <button
                           onClick={() => setShowBusinessForm(true)}
                           className="btn-primary inline-flex items-center space-x-2 px-6 py-3 font-medium rounded-lg"
                         >
@@ -476,9 +529,10 @@ export function Showcase() {
                   {filteredProducts.length}{" "}
                   {filteredProducts.length === 1 ? "product" : "products"} found
                 </p>
-                <button 
+                <button
                   onClick={() => setShowProductForm(true)}
-                  className="btn-primary inline-flex items-center space-x-2 px-4 py-2 font-medium rounded-lg hover:transform hover:-translate-y-1 transition-all duration-200">
+                  className="btn-primary inline-flex items-center space-x-2 px-4 py-2 font-medium rounded-lg hover:transform hover:-translate-y-1 transition-all duration-200"
+                >
                   <Plus className="h-4 w-4" />
                   <span>Add Your Product</span>
                 </button>
@@ -486,17 +540,22 @@ export function Showcase() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {filteredProducts.map((product) => (
-                  <div key={product.id} className="card overflow-hidden group cursor-pointer hover:transform hover:-translate-y-1 transition-all duration-200"
-                       onClick={() => setSelectedProduct(product)}>
+                  <div
+                    key={product.id}
+                    className="card overflow-hidden group cursor-pointer hover:transform hover:-translate-y-1 transition-all duration-200"
+                    onClick={() => setSelectedProduct(product)}
+                  >
                     <div className="relative">
                       <img
-                        src={product.image_url || '/images/placeholder-product.svg'}
+                        src={
+                          product.image_url || "/images/placeholder-product.svg"
+                        }
                         alt={product.name}
                         className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = '/images/placeholder-product.svg';
+                          target.src = "/images/placeholder-product.svg";
                         }}
                       />
                       <div className="absolute top-2 right-2">
@@ -513,10 +572,16 @@ export function Showcase() {
                     </div>
 
                     <div className="p-4">
-                      <h3 className="font-semibold mb-2 line-clamp-2 break-words" style={{ color: 'var(--text-primary)' }}>
+                      <h3
+                        className="font-semibold mb-2 line-clamp-2 break-words"
+                        style={{ color: "var(--text-primary)" }}
+                      >
                         {product.name}
                       </h3>
-                      <p className="text-sm mb-2 line-clamp-2 break-words" style={{ color: 'var(--text-secondary)' }}>
+                      <p
+                        className="text-sm mb-2 line-clamp-2 break-words"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
                         {product.description}
                       </p>
                       <div className="flex items-center justify-between">
@@ -524,10 +589,18 @@ export function Showcase() {
                           className="font-bold"
                           style={{ color: "var(--primary)" }}
                         >
-                          {product.price !== null ? `${product.price.toFixed(2)}` : 'N/A'}
+                          {product.price !== null
+                            ? `${product.price.toFixed(2)}`
+                            : "N/A"}
                         </span>
-                        <span className="text-xs break-words" style={{ color: 'var(--text-secondary)' }}>
-                          by {product.businesses ? product.businesses.name : 'Unknown Seller'}
+                        <span
+                          className="text-xs break-words"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          by{" "}
+                          {product.businesses
+                            ? product.businesses.name
+                            : "Unknown Seller"}
                         </span>
                       </div>
                     </div>
@@ -586,25 +659,31 @@ export function Showcase() {
                 src={selectedBusiness.logo}
                 alt={selectedBusiness.name}
                 className="w-24 h-24 rounded-full object-cover mx-auto mb-4 border-2"
-                style={{ borderColor: 'var(--border-color)' }}
+                style={{ borderColor: "var(--border-color)" }}
                 loading="lazy"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  target.src = '/images/placeholder-business.svg';
+                  target.src = "/images/placeholder-business.svg";
                 }}
               />
-              <h2 className="text-2xl font-bold mb-2 break-words" style={{ color: 'var(--text-primary)' }}>
+              <h2
+                className="text-2xl font-bold mb-2 break-words"
+                style={{ color: "var(--text-primary)" }}
+              >
                 {selectedBusiness.name}
               </h2>
-              <p className="text-lg mb-2 break-words" style={{ color: 'var(--text-secondary)' }}>
+              <p
+                className="text-lg mb-2 break-words"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 Founded by {selectedBusiness.owner}
               </p>
               {selectedBusiness.category && (
                 <span
                   className="px-4 py-2 rounded-full"
-                  style={{ 
-                    backgroundColor: 'var(--tertiary)',
-                    color: 'var(--text-primary)'
+                  style={{
+                    backgroundColor: "var(--tertiary)",
+                    color: "var(--text-primary)",
                   }}
                 >
                   {selectedBusiness.category}
@@ -619,8 +698,11 @@ export function Showcase() {
               >
                 About the Business
               </h3>
-              <p className="text-base leading-relaxed break-words" style={{ color: 'var(--text-secondary)' }}>
-                {selectedBusiness.description || 'No description available.'}
+              <p
+                className="text-base leading-relaxed break-words"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                {selectedBusiness.description || "No description available."}
               </p>
             </div>
 
@@ -628,60 +710,106 @@ export function Showcase() {
               {selectedBusiness.contact && (
                 <a
                   href={getContactLink(selectedBusiness.contact)}
-                  target={selectedBusiness.contact.startsWith('http') ? '_blank' : undefined}
-                  rel={selectedBusiness.contact.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  target={
+                    selectedBusiness.contact.startsWith("http")
+                      ? "_blank"
+                      : undefined
+                  }
+                  rel={
+                    selectedBusiness.contact.startsWith("http")
+                      ? "noopener noreferrer"
+                      : undefined
+                  }
                   className="btn-primary flex-1 inline-flex items-center justify-center space-x-2 py-3 font-medium rounded-lg hover:transform hover:-translate-y-0.5 transition-all duration-200"
                 >
                   <Mail className="h-5 w-5" />
                   <span>Contact Business</span>
                 </a>
               )}
-              <button 
-                      onClick={() => setShowBusinessProductsInModal(prev => !prev)}
-                      className="flex-1 py-3 font-medium rounded-lg border-2 transition-all duration-200 hover:bg-opacity-10 hover:transform hover:-translate-y-0.5"
-                      style={{ 
-                        borderColor: 'var(--primary)',
-                        color: 'var(--primary)'
-                      }}>
-                {showBusinessProductsInModal ? 'Hide Products' : 'View Products'}
+              <button
+                onClick={() => setShowBusinessProductsInModal((prev) => !prev)}
+                className="flex-1 py-3 font-medium rounded-lg border-2 transition-all duration-200 hover:bg-opacity-10 hover:transform hover:-translate-y-0.5"
+                style={{
+                  borderColor: "var(--primary)",
+                  color: "var(--primary)",
+                }}
+              >
+                {showBusinessProductsInModal
+                  ? "Hide Products"
+                  : "View Products"}
               </button>
             </div>
 
             {showBusinessProductsInModal && (
               <div className="mt-8">
-                <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
+                <h3
+                  className="text-lg font-semibold mb-4"
+                  style={{ color: "var(--text-primary)" }}
+                >
                   Products by {selectedBusiness.name}
                 </h3>
                 {loadingBusinessProducts ? (
                   <div className="text-center py-4">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-2" 
-                         style={{ borderColor: 'var(--primary)' }}></div>
-                    <p style={{ color: 'var(--text-secondary)' }}>Loading products...</p>
+                    <div
+                      className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-2"
+                      style={{ borderColor: "var(--primary)" }}
+                    ></div>
+                    <p style={{ color: "var(--text-secondary)" }}>
+                      Loading products...
+                    </p>
                   </div>
                 ) : errorBusinessProducts ? (
-                  <p className="text-red-500 text-center">Error: {errorBusinessProducts}</p>
+                  <p className="text-red-500 text-center">
+                    Error: {errorBusinessProducts}
+                  </p>
                 ) : businessProducts.length === 0 ? (
-                  <p className="text-center text-sm" style={{ color: 'var(--text-secondary)' }}>No products found for this business.</p>
+                  <p
+                    className="text-center text-sm"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    No products found for this business.
+                  </p>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {businessProducts.map((product) => (
-                      <div key={product.id} className="card p-4 flex items-center space-x-4">
+                      <div
+                        key={product.id}
+                        className="card p-4 flex items-center space-x-4"
+                      >
                         <img
-                          src={product.image_url || '/images/placeholder-product.svg'}
+                          src={
+                            product.image_url ||
+                            "/images/placeholder-product.svg"
+                          }
                           alt={product.name}
                           className="w-16 h-16 object-cover rounded-lg"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            target.src = '/images/placeholder-product.svg';
+                            target.src = "/images/placeholder-product.svg";
                           }}
                         />
                         <div>
-                          <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{product.name}</h4>
+                          <h4
+                            className="font-semibold"
+                            style={{ color: "var(--text-primary)" }}
+                          >
+                            {product.name}
+                          </h4>
                           {product.price !== null && (
-                            <p className="text-sm font-bold" style={{ color: 'var(--primary)' }}>${product.price.toFixed(2)}</p>
+                            <p
+                              className="text-sm font-bold"
+                              style={{ color: "var(--primary)" }}
+                            >
+                              ${product.price.toFixed(2)}
+                            </p>
                           )}
                           {product.category && (
-                            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{product.category}</p>
+                            <p
+                              className="text-xs"
+                              style={{ color: "var(--text-secondary)" }}
+                            >
+                              {product.category}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -690,7 +818,8 @@ export function Showcase() {
                 )}
               </div>
             )}
-          </div> {/* Closing tag for <div className="space-y-6"> */}
+          </div>{" "}
+          {/* Closing tag for <div className="space-y-6"> */}
         </Modal>
       )}
 
@@ -704,13 +833,15 @@ export function Showcase() {
         >
           <div className="space-y-6">
             <img
-              src={selectedProduct.image_url || '/images/placeholder-product.svg'}
+              src={
+                selectedProduct.image_url || "/images/placeholder-product.svg"
+              }
               alt={selectedProduct.name}
               className="w-full h-64 object-cover rounded-lg"
               loading="lazy"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.src = '/images/placeholder-product.svg';
+                target.src = "/images/placeholder-product.svg";
               }}
             />
 
@@ -725,8 +856,14 @@ export function Showcase() {
                 >
                   {selectedProduct.category}
                 </span>
-                <p className="text-sm mt-2 break-words" style={{ color: 'var(--text-secondary)' }}>
-                  by {selectedProduct.businesses ? selectedProduct.businesses.name : 'Unknown Seller'}
+                <p
+                  className="text-sm mt-2 break-words"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  by{" "}
+                  {selectedProduct.businesses
+                    ? selectedProduct.businesses.name
+                    : "Unknown Seller"}
                 </p>
               </div>
               <div className="text-right">
@@ -734,7 +871,9 @@ export function Showcase() {
                   className="text-2xl font-bold"
                   style={{ color: "var(--primary)" }}
                 >
-                  {selectedProduct.price !== null ? `${selectedProduct.price.toFixed(2)}` : 'N/A'}
+                  {selectedProduct.price !== null
+                    ? `${selectedProduct.price.toFixed(2)}`
+                    : "N/A"}
                 </p>
               </div>
             </div>
@@ -746,7 +885,10 @@ export function Showcase() {
               >
                 Product Description
               </h3>
-              <p className="text-base leading-relaxed break-words" style={{ color: 'var(--text-secondary)' }}>
+              <p
+                className="text-base leading-relaxed break-words"
+                style={{ color: "var(--text-secondary)" }}
+              >
                 {selectedProduct.description}
               </p>
             </div>
@@ -755,11 +897,13 @@ export function Showcase() {
               <button className="btn-primary flex-1 py-3 font-medium rounded-lg hover:transform hover:-translate-y-0.5 transition-all duration-200">
                 Contact Seller
               </button>
-              <button className="flex-1 py-3 font-medium rounded-lg border-2 transition-all duration-200 hover:bg-opacity-10 hover:transform hover:-translate-y-0.5"
-                      style={{ 
-                        borderColor: 'var(--primary)',
-                        color: 'var(--primary)'
-                      }}>
+              <button
+                className="flex-1 py-3 font-medium rounded-lg border-2 transition-all duration-200 hover:bg-opacity-10 hover:transform hover:-translate-y-0.5"
+                style={{
+                  borderColor: "var(--primary)",
+                  color: "var(--primary)",
+                }}
+              >
                 View Store
               </button>
             </div>

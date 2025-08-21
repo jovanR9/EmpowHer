@@ -228,7 +228,7 @@ export function Stories() {
       >
         <Link
           to="/stories/submit"
-          className="btn-primary inline-flex items-center space-x-2 px-6 py-3 font-semibold rounded-lg"
+          className="btn-primary inline-flex items-center space-x-2 px-6 py-3 font-semibold rounded-lg hover:transform hover:-translate-y-1 !text-[#3A3440] hover:!text-white"
         >
           <Plus className="h-5 w-5" />
           <span>Share Your Story</span>

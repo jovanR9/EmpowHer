@@ -169,7 +169,7 @@ export function Guides() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={() => setActiveTab("guides")}
-            className={`px-6 py-3 font-semibold rounded-lg transition-all duration-200 ${
+            className={`px-6 py-3 font-semibold rounded-lg transition-all duration-200 hover:transform hover:-translate-y-1 !text-[#3A3440] hover:!text-white ${
               activeTab === "guides"
                 ? "btn-primary"
                 : "border-2 hover:transform hover:-translate-y-1"
@@ -189,17 +189,15 @@ export function Guides() {
           </button>
           <button
             onClick={() => setActiveTab("schemes")}
-            className={`px-6 py-3 font-semibold rounded-lg transition-all duration-200 ${
+            className={`px-6 py-3 font-semibold rounded-lg transition-all duration-200  !text-[#3A3440] hover:!text-white ${
               activeTab === "schemes"
                 ? "btn-primary"
-                : "border-2 hover:transform hover:-translate-y-1"
+                : "border-2 border-white hover:transform hover:-translate-y-1"
             }`}
             style={
               activeTab === "schemes"
                 ? {}
                 : {
-                    borderColor: "var(--primary)",
-                    color: "var(--primary)",
                     backgroundColor: "transparent",
                   }
             }

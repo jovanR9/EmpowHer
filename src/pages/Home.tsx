@@ -84,20 +84,20 @@ export function Home() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Link
             to="/stories"
-            className="btn-primary inline-flex items-center space-x-2 px-8 py-4 text-lg font-semibold rounded-lg"
+            className="btn-primary inline-flex items-center space-x-2 px-8 py-4 text-lg font-semibold rounded-lg hover:transform hover:-translate-y-1 !text-[#3A3440] hover:!text-white"
           >
             <span>Explore Stories</span>
             <ArrowRight className="h-5 w-5" />
           </Link>
           <Link
             to="/stories/submit"
-            className="px-8 py-4 text-lg font-semibold rounded-lg border-2 transition-all duration-200 hover:transform hover:-translate-y-1 hero-cta-secondary"
+            className="px-8 py-4 text-lg font-semibold rounded-lg border-2 transition-all duration-200 hover:transform hover:-translate-y-1 hero-cta-secondary !text-[#3A3440] hover:!text-white"
           >
             Share Your Story
           </Link>
         </div>
       </Hero>
-
+      {/* !text-[var(--text-primary)] */}
       {/* Features Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -147,7 +147,6 @@ export function Home() {
           </div>
         </div>
       </section>
-
       {/* Featured Stories */}
       <section
         className="py-16 px-4 sm:px-6 lg:px-8"
@@ -178,7 +177,6 @@ export function Home() {
           </div>
         </div>
       </section>
-
       {/* Featured Guides */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -250,7 +248,6 @@ export function Home() {
           </div>
         </div>
       </section>
-
       {/* Featured Businesses */}
       <section
         className="py-16 px-4 sm:px-6 lg:px-8"
@@ -321,7 +318,6 @@ export function Home() {
           </div>
         </div>
       </section>
-
       {/* CTA Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 text-center">
         <div className="max-w-4xl mx-auto">
