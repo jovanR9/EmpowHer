@@ -4,6 +4,8 @@ https://github.com/user-attachments/assets/bb64192d-5273-4959-9583-301d59a158b6
 
 A comprehensive React frontend application designed to empower women through stories, community connection, and access to essential resources.
 
+🔗 **Check out the live platform here:** [Visit EmpowHer](https://the-empowher.vercel.app/) 
+
 ## 🌟 Features
 
 ### Core Functionality
@@ -242,4 +244,12 @@ For support and questions:
 ---
 
 
-**Built with ❤️ for women everywhere by the EmpowHer team**
+**Built with ❤️ for women everywhere by the ScriptSmiths team**
+
+---
+
+### 👩‍💻 Developers  
+
+[![GitHub](https://img.shields.io/badge/Anuj_Gaude-000?style=flat&logo=github&logoColor=white)](https://github.com/anuj0629)  
+[![GitHub](https://img.shields.io/badge/Ashden_Mascarenhas-000?style=flat&logo=github&logoColor=white)](https://github.com/706ash)  
+[![GitHub](https://img.shields.io/badge/Lauren_Rodrigues-000?style=flat&logo=github&logoColor=white)](https://github.com/jovanR9) 
