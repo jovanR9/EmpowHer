@@ -14,6 +14,8 @@ import { Modal } from "../components/Common/Modal";
 import { mockForumTopics, ForumTopic } from "../data/mockData"; // Keep mockForumTopics
 import { supabase } from "../lib/supabaseClient"; // Import supabase
 import { DiscussionForm } from "../components/Discussions/DiscussionForm";
+import { ProfileCard } from "../components/Community/ProfileCard";
+import { ForumCard } from "../components/Community/ForumCard";
 
 // Define the Profile interface as provided earlier
 interface Profile {
@@ -470,100 +472,11 @@ export function Community() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProfiles.map((profile) => (
-                  <div key={profile.id} className="card p-6">
-                    <div className="flex items-start space-x-4 mb-4">
-                      <img
-                        src={profile.avatar}
-                        alt={profile.name}
-                        className="w-16 h-16 rounded-full object-cover"
-                        loading="lazy"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h3
-                          className="text-xl font-semibold mb-1"
-                          style={{ color: "var(--text-primary)" }}
-                        >
-                          {profile.name}
-                        </h3>
-                        <div className="flex items-center space-x-2 mb-2">
-                          <span
-                            className="px-3 py-1 text-xs rounded-full"
-                            style={{
-                              backgroundColor:
-                                profile.type === "mentor"
-                                  ? "var(--secondary)"
-                                  : "var(--tertiary)",
-                              color: "var(--text-primary)",
-                            }}
-                          >
-                            {profile.type === "mentor" ? "Mentor" : "Mentee"}
-                          </span>
-                          <span
-                            className={`w-3 h-3 rounded-full ${
-                              profile.availability === "available"
-                                ? "bg-green-400"
-                                : "bg-yellow-400"
-                            }`}
-                            title={
-                              profile.availability === "available"
-                                ? "Available"
-                                : "Busy"
-                            }
-                          />
-                        </div>
-                        <div
-                          className="flex items-center text-sm mb-3"
-                          style={{ color: "var(--text-secondary)" }}
-                        >
-                          <MapPin className="h-4 w-4 mr-1" />
-                          {profile.location}
-                        </div>
-                      </div>
-                    </div>
-
-                    <p
-                      className="text-sm mb-4"
-                      style={{ color: "var(--text-secondary)" }}
-                    >
-                      {profile.bio}
-                    </p>
-
-                    <div className="mb-4">
-                      <div className="flex flex-wrap gap-2">
-                        {profile.skills.slice(0, 3).map((skill) => (
-                          <span
-                            key={skill}
-                            className="px-2 py-1 text-xs rounded-full"
-                            style={{
-                              backgroundColor: "var(--primary)",
-                              color: "var(--text-primary)",
-                              opacity: 0.8,
-                            }}
-                          >
-                            {skill}
-                          </span>
-                        ))}
-                        {profile.skills.length > 3 && (
-                          <span
-                            className="text-xs"
-                            style={{ color: "var(--text-secondary)" }}
-                          >
-                            +{profile.skills.length - 3} more
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => handleConnect(profile)}
-                      className="btn-primary w-full py-2 font-medium rounded-lg"
-                      disabled={profile.availability === "busy"}
-                    >
-                      {profile.availability === "available"
-                        ? "Connect"
-                        : "Currently Busy"}
-                    </button>
-                  </div>
+                  <ProfileCard
+                    key={profile.id}
+                    profile={profile}
+                    onConnect={() => handleConnect(profile)}
+                  />
                 ))}
               </div>
 
@@ -617,53 +530,13 @@ export function Community() {
               {!discussionsLoading &&
                 !discussionsError &&
                 filteredTopics.length > 0 && (
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredTopics.map((topic) => (
-                      <div
+                      <ForumCard
                         key={topic.id}
-                        className="card p-6 cursor-pointer hover:scale-[1.01] transition-transform"
+                        topic={topic}
                         onClick={() => setSelectedTopic(topic)}
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <h3
-                              className="text-xl font-semibold mb-2"
-                              style={{ color: "var(--text-primary)" }}
-                            >
-                              {topic.title}
-                            </h3>
-                            <p
-                              className="text-sm mb-3"
-                              style={{ color: "var(--text-secondary)" }}
-                            >
-                              {topic.description}
-                            </p>
-                            <div
-                              className="flex items-center space-x-4 text-sm"
-                              style={{ color: "var(--text-secondary)" }}
-                            >
-                              <span>by {topic.author_name}</span>
-                              <span className="flex items-center space-x-1">
-                                <MessageCircle className="h-4 w-4" />
-                                <span>{topic.replies_count} replies</span>
-                              </span>
-                              <span className="flex items-center space-x-1">
-                                <Clock className="h-4 w-4" />
-                                <span>{topic.created_at}</span>
-                              </span>
-                            </div>
-                          </div>
-                          <span
-                            className="px-3 py-1 text-xs rounded-full whitespace-nowrap ml-4"
-                            style={{
-                              backgroundColor: "var(--tertiary)",
-                              color: "var(--text-primary)",
-                            }}
-                          >
-                            {topic.category}
-                          </span>
-                        </div>
-                      </div>
+                      />
                     ))}
                   </div>
                 )}
