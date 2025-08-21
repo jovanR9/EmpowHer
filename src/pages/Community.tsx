@@ -30,6 +30,15 @@ interface Discussion {
   replies_count: number; // To store the count of replies
 }
 
+interface Reply {
+  id: string;
+  content: string;
+  author_id: string;
+  author_name: string; // To display the author's name
+  created_at: string;
+  topic_id: string;
+}
+
 export function Community() {
   const [activeTab, setActiveTab] = useState<'profiles' | 'forums'>('profiles');
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,6 +56,11 @@ export function Community() {
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
   const [discussionsLoading, setDiscussionsLoading] = useState(false);
   const [discussionsError, setDiscussionsError] = useState<string | null>(null);
+
+  // State for fetched replies
+  const [replies, setReplies] = useState<Reply[]>([]);
+  const [repliesLoading, setRepliesLoading] = useState(false);
+  const [repliesError, setRepliesError] = useState<string | null>(null);
 
   // Fetch profiles from Supabase
   useEffect(() => {
@@ -141,6 +155,56 @@ export function Community() {
     }
   }, [activeTab]);
 
+  // Fetch replies for a selected topic
+  useEffect(() => {
+    if (selectedTopic) {
+      const fetchReplies = async () => {
+        try {
+          setRepliesLoading(true);
+          setRepliesError(null);
+
+          const { data, error } = await supabase
+            .from('forum_replies')
+            .select(`
+              id,
+              content,
+              created_at,
+              author_id,
+              profiles (name)
+            `)
+            .eq('topic_id', selectedTopic.id)
+            .order('created_at', { ascending: true });
+
+          if (error) {
+            console.error('Error fetching replies:', error);
+            setRepliesError('Failed to load replies');
+            setReplies([]);
+          } else {
+            const formattedReplies: Reply[] = (data || []).map((r: any) => ({
+              id: r.id,
+              content: r.content,
+              author_id: r.author_id,
+              author_name: r.profiles ? r.profiles.name : 'Anonymous', // Default to Anonymous
+              created_at: new Date(r.created_at).toLocaleString(),
+              topic_id: selectedTopic.id,
+            }));
+            setReplies(formattedReplies);
+          }
+        } catch (err) {
+          console.error('Unexpected error fetching replies:', err);
+          setRepliesError('An unexpected error occurred');
+          setReplies([]);
+        } finally {
+          setRepliesLoading(false);
+        }
+      };
+
+      fetchReplies();
+    } else {
+      setReplies([]); // Clear replies when no topic is selected
+    }
+  }, [selectedTopic]);
+
 
   // Get unique locations for filter (now based on fetched profiles)
   const locations = useMemo(() => {
@@ -183,12 +247,37 @@ export function Community() {
     alert(`Connection request sent to ${profile.name}!`);
   };
 
-  const handlePostSubmit = (e: React.FormEvent) => {
+  const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPost.trim() && selectedTopic) {
-      // Mock post submission - would integrate with backend
-      alert('Your reply has been posted!');
-      setNewPost('');
+      try {
+        const user = await supabase.auth.getUser();
+        const userId = user.data.user?.id || null; // Get user ID if logged in
+
+        const { error } = await supabase
+          .from('forum_replies')
+          .insert({
+            content: newPost.trim(),
+            topic_id: selectedTopic.id,
+            author_id: userId, // Use actual user ID or null for anonymous
+          });
+
+        if (error) {
+          console.error('Error posting reply:', error);
+          alert('Failed to post reply.');
+        } else {
+          alert('Your reply has been posted!');
+          setNewPost('');
+          // Re-fetch replies to show the new post
+          if (selectedTopic) {
+            // This will trigger the useEffect to re-fetch replies
+            setSelectedTopic({ ...selectedTopic }); 
+          }
+        }
+      } catch (err) {
+        console.error('Unexpected error posting reply:', err);
+        alert('An unexpected error occurred while posting reply.');
+      }
     }
   };
 
@@ -511,36 +600,27 @@ export function Community() {
                 Recent Replies
               </h4>
               <div className="space-y-4 mb-6">
-                {/* Mock replies */}
-                <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-purple-500" />
-                    <span className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
-                      Sarah M.
-                    </span>
-                    <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                      2 hours ago
-                    </span>
+                {repliesLoading && <p style={{ color: 'var(--text-secondary)' }}>Loading replies...</p>}
+                {repliesError && <p style={{ color: 'var(--error-text)' }}>{repliesError}</p>}
+                {!repliesLoading && !repliesError && replies.length === 0 && (
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>No replies yet. Be the first to comment!</p>
+                )}
+                {!repliesLoading && !repliesError && replies.map((reply) => (
+                  <div key={reply.id} className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-purple-500" /> {/* Placeholder avatar */}
+                      <span className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
+                        {reply.author_name}
+                      </span>
+                      <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                        {reply.created_at}
+                      </span>
+                    </div>
+                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                      {reply.content}
+                    </p>
                   </div>
-                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                    This is such an important topic! I've found that setting clear boundaries between work and family time has been key to maintaining balance.
-                  </p>
-                </div>
-                
-                <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-blue-500" />
-                    <span className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
-                      Jennifer K.
-                    </span>
-                    <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                      4 hours ago
-                    </span>
-                  </div>
-                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                    I agree! Having a support system has been crucial for me. Don't be afraid to ask for help when you need it.
-                  </p>
-                </div>
+                ))}
               </div>
               
               <form onSubmit={handlePostSubmit} className="space-y-4">
