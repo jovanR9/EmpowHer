@@ -248,8 +248,9 @@ For support and questions:
 
 ---
 
-### 👩‍💻 Developers  
+### 👨‍💻 Developers  
 
 [![GitHub](https://img.shields.io/badge/Anuj_Gaude-000?style=flat&logo=github&logoColor=white)](https://github.com/anuj0629)  
 [![GitHub](https://img.shields.io/badge/Ashden_Mascarenhas-000?style=flat&logo=github&logoColor=white)](https://github.com/706ash)  
 [![GitHub](https://img.shields.io/badge/Lauren_Rodrigues-000?style=flat&logo=github&logoColor=white)](https://github.com/jovanR9) 
+
